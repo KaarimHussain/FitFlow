@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -7,36 +7,41 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PasswordStrength } from "@/components/ui/password-strength"
 import { User, Mail, Lock, ArrowRight, UserCheck } from "lucide-react"
+import { useAuth } from "@/context/auth-context"
+import { useNotificationService } from "@/context/notification-context"
 
 export default function SignUp() {
+    const navigate = useNavigate()
+    const { signUp } = useAuth()
+    const notify = useNotificationService()
     const [formData, setFormData] = useState({
         username: "",
         email: "",
         password: ""
     })
-    
+
     const [errors, setErrors] = useState({
         username: "",
         email: "",
         password: ""
     })
-    
+
     const [isSubmitting, setIsSubmitting] = useState(false)
-    
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
         setFormData(prev => ({ ...prev, [name]: value }))
-        
+
         // Clear error when user starts typing
         if (errors[name as keyof typeof errors]) {
             setErrors(prev => ({ ...prev, [name]: "" }))
         }
     }
-    
+
     const validateForm = () => {
         let isValid = true
         const newErrors = { ...errors }
-        
+
         // Username validation
         if (!formData.username.trim()) {
             newErrors.username = "Username is required"
@@ -45,7 +50,7 @@ export default function SignUp() {
             newErrors.username = "Username must be at least 3 characters"
             isValid = false
         }
-        
+
         // Email validation
         if (!formData.email.trim()) {
             newErrors.email = "Email is required"
@@ -54,7 +59,7 @@ export default function SignUp() {
             newErrors.email = "Please enter a valid email address"
             isValid = false
         }
-        
+
         // Password validation
         if (!formData.password) {
             newErrors.password = "Password is required"
@@ -63,32 +68,44 @@ export default function SignUp() {
             newErrors.password = "Password must be at least 8 characters"
             isValid = false
         }
-        
+
         setErrors(newErrors)
         return isValid
     }
-    
-    const handleSubmit = (e: React.FormEvent) => {
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        
+
         if (validateForm()) {
             setIsSubmitting(true)
-            
-            // Simulate API call
-            setTimeout(() => {
-                console.log("Form submitted:", formData)
-                setIsSubmitting(false)
-                // Here you would typically redirect or show success message
-            }, 1500)
+
+            try {
+                const signUpResponse = await signUp({
+                    username: formData.username,
+                    email: formData.email,
+                    password: formData.password
+                });
+
+                if (signUpResponse.success) {
+                    notify.success("Account created successfully!");
+                    navigate('/');
+                } else {
+                    notify.error(signUpResponse.message || "Failed to create account. Please try again.");
+                }
+            } catch (error) {
+                notify.error("An unexpected error occurred. Please try again later.");
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     }
-    
+
     return (
         <main className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-background via-muted to-accent/10 pb-12 pt-25">
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,theme(colors.primary/10),transparent_50%)] pointer-events-none" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,theme(colors.accent/8),transparent_50%)] pointer-events-none" />
-            
+
             <div className="container max-w-md px-4 relative z-10">
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-background via-background to-background/95">
                     <CardHeader className="space-y-1 text-center">
@@ -101,7 +118,7 @@ export default function SignUp() {
                             Join Our Fitness Community
                         </Badge>
                     </CardHeader>
-                    
+
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
@@ -113,7 +130,7 @@ export default function SignUp() {
                                 </div>
                                 <div className="relative">
                                     <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                                    <Input 
+                                    <Input
                                         id="username"
                                         name="username"
                                         placeholder="Enter your username"
@@ -123,7 +140,7 @@ export default function SignUp() {
                                     />
                                 </div>
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="email">Email</Label>
@@ -133,7 +150,7 @@ export default function SignUp() {
                                 </div>
                                 <div className="relative">
                                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                                    <Input 
+                                    <Input
                                         id="email"
                                         name="email"
                                         type="email"
@@ -144,7 +161,7 @@ export default function SignUp() {
                                     />
                                 </div>
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="password">Password</Label>
@@ -154,7 +171,7 @@ export default function SignUp() {
                                 </div>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                                    <Input 
+                                    <Input
                                         id="password"
                                         name="password"
                                         type="password"
@@ -164,13 +181,13 @@ export default function SignUp() {
                                         onChange={handleChange}
                                     />
                                 </div>
-                                
+
                                 {/* Password Strength Indicator */}
                                 <PasswordStrength password={formData.password} />
                             </div>
-                            
-                            <Button 
-                                type="submit" 
+
+                            <Button
+                                type="submit"
                                 className="w-full py-6 text-lg font-semibold"
                                 disabled={isSubmitting}
                             >
@@ -191,7 +208,7 @@ export default function SignUp() {
                             </Button>
                         </form>
                     </CardContent>
-                    
+
                     <CardFooter className="flex flex-col space-y-4 text-center">
                         <div className="text-sm text-muted-foreground">
                             Already have an account?{" "}
@@ -199,7 +216,7 @@ export default function SignUp() {
                                 Sign in
                             </Link>
                         </div>
-                        
+
                         <div className="text-xs text-muted-foreground">
                             By creating an account, you agree to our{" "}
                             <a href="#" className="text-primary hover:underline">Terms of Service</a>

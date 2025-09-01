@@ -33,6 +33,7 @@ import { Button } from "./ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import Logo from "./Logo"
+import { AuthStatus } from "./auth/AuthStatus"
 
 // Enhanced feature arrays with icons and featured items
 const workoutFeatures = [
@@ -350,14 +351,7 @@ export const Navbar = React.memo(() => {
 
                 {/* Desktop Actions */}
                 <div className="hidden sm:flex items-center gap-2">
-                    <Link to="/auth/sign-up">
-                        <Button size="sm" className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 cursor-pointer">
-                            Get Started
-                        </Button>
-                    </Link>
-                    <Button variant="outline" className="cursor-pointer" size="sm">
-                        Login
-                    </Button>
+                    <AuthStatus />
                     <ThemeToggle />
                 </div>
 
@@ -400,14 +394,9 @@ export const Navbar = React.memo(() => {
                                     onLinkClick={closeMobileMenu}
                                 />
 
-                                {/* Mobile Action Buttons */}
+                                {/* Mobile Auth Status */}
                                 <div className="flex flex-col gap-2 mt-6 px-3">
-                                    <Button onClick={closeMobileMenu} className="w-full bg-gradient-to-r from-primary to-primary/80">
-                                        Get Started
-                                    </Button>
-                                    <Button variant="outline" onClick={closeMobileMenu} className="w-full">
-                                        Login
-                                    </Button>
+                                    <AuthStatus />
                                 </div>
                             </div>
                         </SheetContent>
