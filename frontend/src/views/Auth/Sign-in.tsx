@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Mail, Lock, ArrowRight, LogIn } from "lucide-react"
-import { useAuth } from "@/context/auth-context"
+import { useAuth } from "@/context/AuthContext";
 import { useNotificationService } from "@/context/notification-context"
 
 export default function SignIn() {
@@ -63,7 +63,7 @@ export default function SignIn() {
         return isValid
     }
 
-    const { signIn } = useAuth()
+    const { login } = useAuth();
 
     const handleSubmit = async (e: any) => {
         e.preventDefault()
@@ -72,19 +72,11 @@ export default function SignIn() {
             setIsSubmitting(true)
 
             try {
-                const signInResponse = await signIn({
-                    email: formData.email,
-                    password: formData.password
-                });
-
-                if (signInResponse.success) {
-                    notify.success("Successfully signed in!");
-                    navigate('/dashboard');
-                } else {
-                    notify.error(signInResponse.message || "Failed to sign in. Please try again.");
-                }
+                await login(formData.email, formData.password);
+                notify.success("Logged in successfully!");
+                navigate("/dashboard");
             } catch (error) {
-                notify.error("An unexpected error occurred. Please try again later.");
+                notify.error("Invalid credentials. Please try again.");
             } finally {
                 setIsSubmitting(false);
             }
@@ -186,7 +178,7 @@ export default function SignIn() {
                     <CardFooter className="flex flex-col space-y-4 text-center">
                         <div className="text-sm text-muted-foreground">
                             Don't have an account?{" "}
-                            <Link to="/auth/sign-up" className="text-primary hover:underline font-medium">
+                            <Link to="/signup" className="text-primary hover:underline font-medium">
                                 Create one
                             </Link>
                         </div>

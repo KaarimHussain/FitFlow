@@ -131,7 +131,9 @@ router.post('/login', async (req, res) => {
 // @route   GET /api/auth/me
 // @desc    Get current user
 // @access  Private
-router.get('/me', async (req, res) => {
+const { protect } = require('../middleware/auth');
+
+router.get('/me', protect, async (req, res) => {
     try {
         // Assuming you have authentication middleware that adds user to req
         // This would typically be protected by a middleware that verifies JWT
@@ -174,7 +176,7 @@ router.get('/me', async (req, res) => {
 // @route   POST /api/auth/verify
 // @desc    Verify user email (simplified)
 // @access  Private
-router.post('/verify', async (req, res) => {
+router.post('/verify', protect, async (req, res) => {
     try {
         // In a real app, you'd verify a token sent to email
         // This is a simplified version that just sets isVerified to true

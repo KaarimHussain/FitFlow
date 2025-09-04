@@ -7,12 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PasswordStrength } from "@/components/ui/password-strength"
 import { User, Mail, Lock, ArrowRight, UserCheck } from "lucide-react"
-import { useAuth } from "@/context/auth-context"
+import { useAuth } from "@/context/AuthContext";
 import { useNotificationService } from "@/context/notification-context"
 
 export default function SignUp() {
     const navigate = useNavigate()
-    const { signUp } = useAuth()
     const notify = useNotificationService()
     const [formData, setFormData] = useState({
         username: "",
@@ -73,6 +72,8 @@ export default function SignUp() {
         return isValid
     }
 
+    const { signup } = useAuth();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
@@ -80,20 +81,11 @@ export default function SignUp() {
             setIsSubmitting(true)
 
             try {
-                const signUpResponse = await signUp({
-                    username: formData.username,
-                    email: formData.email,
-                    password: formData.password
-                });
-
-                if (signUpResponse.success) {
-                    notify.success("Account created successfully!");
-                    navigate('/');
-                } else {
-                    notify.error(signUpResponse.message || "Failed to create account. Please try again.");
-                }
+                await signup(formData.username, formData.email, formData.password);
+                notify.success("Account created successfully!");
+                navigate("/dashboard");
             } catch (error) {
-                notify.error("An unexpected error occurred. Please try again later.");
+                notify.error("Failed to create account. Please try again.");
             } finally {
                 setIsSubmitting(false);
             }
@@ -212,7 +204,7 @@ export default function SignUp() {
                     <CardFooter className="flex flex-col space-y-4 text-center">
                         <div className="text-sm text-muted-foreground">
                             Already have an account?{" "}
-                            <Link to="/auth/sign-in" className="text-primary hover:underline font-medium">
+                            <Link to="/login" className="text-primary hover:underline font-medium">
                                 Sign in
                             </Link>
                         </div>

@@ -33,7 +33,6 @@ import { Button } from "./ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import Logo from "./Logo"
-import { AuthStatus } from "./auth/AuthStatus"
 
 // Enhanced feature arrays with icons and featured items
 const workoutFeatures = [
@@ -256,7 +255,10 @@ const MobileMenuSection = React.memo(({
 
 MobileMenuSection.displayName = "MobileMenuSection"
 
+import { useAuth } from "@/context/AuthContext";
+
 export const Navbar = React.memo(() => {
+    const { user, logout } = useAuth();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
 
     const closeMobileMenu = React.useCallback(() => {
@@ -351,8 +353,24 @@ export const Navbar = React.memo(() => {
 
                 {/* Desktop Actions */}
                 <div className="hidden sm:flex items-center gap-2">
-                    <AuthStatus />
                     <ThemeToggle />
+                    {user ? (
+                        <>
+                            <Button asChild variant="ghost">
+                                <Link to="/dashboard">Dashboard</Link>
+                            </Button>
+                            <Button onClick={logout}>Logout</Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button asChild variant="ghost">
+                                <Link to="/login">Sign In</Link>
+                            </Button>
+                            <Button asChild>
+                                <Link to="/signup">Sign Up</Link>
+                            </Button>
+                        </>
+                    )}
                 </div>
 
                 {/* Mobile Menu */}
@@ -394,10 +412,29 @@ export const Navbar = React.memo(() => {
                                     onLinkClick={closeMobileMenu}
                                 />
 
-                                {/* Mobile Auth Status */}
-                                <div className="flex flex-col gap-2 mt-6 px-3">
-                                    <AuthStatus />
-                                </div>
+                                <div className="border-t my-4"></div>
+
+                                {user ? (
+                                    <>
+                                        <Link
+                                            to="/dashboard"
+                                            onClick={closeMobileMenu}
+                                            className="px-3 py-2 font-medium hover:bg-accent rounded-md"
+                                        >
+                                            Dashboard
+                                        </Link>
+                                        <Button onClick={() => { logout(); closeMobileMenu(); }} className="w-full">Logout</Button>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col space-y-2">
+                                        <Button asChild variant="ghost" onClick={closeMobileMenu} className="w-full">
+                                            <Link to="/login">Sign In</Link>
+                                        </Button>
+                                        <Button asChild onClick={closeMobileMenu} className="w-full">
+                                            <Link to="/signup">Sign Up</Link>
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         </SheetContent>
                     </Sheet>
