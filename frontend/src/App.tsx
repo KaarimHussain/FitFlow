@@ -12,6 +12,10 @@ import Profile from "./views/User/Profile";
 import Dashboard from "./views/User/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRoutes from "./components/AuthRoutes";
+import NutritionLogger from "./views/User/NutritionLogger";
+import ProgressTracker from "./views/User/ProgressTracker";
+import WorkoutForm from "./views/User/WorkoutForm";
+import WorkoutHistory from "./views/User/WorkoutHistory";
 
 function App() {
   return (
@@ -22,10 +26,10 @@ function App() {
           <NotificationContainer />
           <Routes>
             {/* Base Route */}
-            <Route path="/" element={<Home />} />
 
             {/* Auth Routes - Accessible only when NOT logged in */}
             <Route element={<AuthRoutes />}>
+              <Route path="/" element={<Home />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/login" element={<SignIn />} />
             </Route>
@@ -34,6 +38,11 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/profile" element={<Profile />} />
               <Route path="/dashboard" element={<Dashboard />} />
+
+              <Route path="/workouts/new" element={<WorkoutForm />} />
+              <Route path="/workouts/history" element={<WorkoutHistory />} />
+              <Route path="/nutrition" element={<NutritionLogger />} />
+              <Route path="/progress" element={<ProgressTracker />} />
             </Route>
           </Routes>
         </AuthProvider>
