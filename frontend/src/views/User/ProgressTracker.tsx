@@ -6,8 +6,41 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TrendingUp, Target, Calendar, Award, Scale, Ruler, Dumbbell } from "lucide-react"
+import { apiService } from "@/services/api.service"
 
 export default function ProgressTracker() {
+    /* ---------- dummy goals ---------- */
+    const weightGoal = { current: 172, target: 165 }
+    const strengthGoal = { current: 185, target: 225 } /* bench */
+    const weeklyGoal = { current: 4, target: 5 }
+
+    /* ---------- handlers ---------- */
+    const logMeasurements = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        const fd = new FormData(e.currentTarget)
+        await apiService.logMeasurements({
+            weight: Number(fd.get("weight")),
+            bodyFat: Number(fd.get("bodyFat")),
+            chest: Number(fd.get("chest")),
+            waist: Number(fd.get("waist")),
+            arms: Number(fd.get("arms")),
+            thighs: Number(fd.get("thighs")),
+        })
+        alert("Measurements saved")
+    }
+
+    const logPerformance = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        const fd = new FormData(e.currentTarget)
+        await apiService.logPerformance({
+            exercise: String(fd.get("exercise")),
+            weight: Number(fd.get("weight")),
+            reps: Number(fd.get("reps")),
+            sets: Number(fd.get("sets")),
+        })
+        alert("Performance saved")
+    }
+
     return (
         <div className="max-w-6xl mx-auto py-25 px-6 space-y-6">
             <div className="flex items-center justify-between">
@@ -34,14 +67,14 @@ export default function ProgressTracker() {
                         <div className="space-y-2">
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-muted-foreground">Current</span>
-                                <span className="font-semibold">172 lbs</span>
+                                <span className="font-semibold">{weightGoal.current} lbs</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-muted-foreground">Target</span>
-                                <span className="font-semibold">165 lbs</span>
+                                <span className="font-semibold">{weightGoal.target} lbs</span>
                             </div>
-                            <Progress value={71} className="h-2" />
-                            <div className="text-xs text-muted-foreground">7 lbs to go</div>
+                            <Progress value={((weightGoal.target - weightGoal.current) / (weightGoal.target - 180)) * 100} className="h-2" />
+                            <div className="text-xs text-muted-foreground">{weightGoal.current - weightGoal.target} lbs to go</div>
                         </div>
                     </CardContent>
                 </Card>
@@ -57,14 +90,14 @@ export default function ProgressTracker() {
                         <div className="space-y-2">
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-muted-foreground">Bench Press</span>
-                                <span className="font-semibold">185 lbs</span>
+                                <span className="font-semibold">{strengthGoal.current} lbs</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-muted-foreground">Target</span>
-                                <span className="font-semibold">225 lbs</span>
+                                <span className="font-semibold">{strengthGoal.target} lbs</span>
                             </div>
-                            <Progress value={82} className="h-2" />
-                            <div className="text-xs text-muted-foreground">40 lbs to go</div>
+                            <Progress value={(strengthGoal.current / strengthGoal.target) * 100} className="h-2" />
+                            <div className="text-xs text-muted-foreground">{strengthGoal.target - strengthGoal.current} lbs to go</div>
                         </div>
                     </CardContent>
                 </Card>
@@ -80,14 +113,14 @@ export default function ProgressTracker() {
                         <div className="space-y-2">
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-muted-foreground">Workouts</span>
-                                <span className="font-semibold">4 / 5</span>
+                                <span className="font-semibold">{weeklyGoal.current} / {weeklyGoal.target}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-muted-foreground">This Week</span>
                                 <Badge variant="secondary">On Track</Badge>
                             </div>
-                            <Progress value={80} className="h-2" />
-                            <div className="text-xs text-muted-foreground">1 workout remaining</div>
+                            <Progress value={(weeklyGoal.current / weeklyGoal.target) * 100} className="h-2" />
+                            <div className="text-xs text-muted-foreground">{weeklyGoal.target - weeklyGoal.current} workout remaining</div>
                         </div>
                     </CardContent>
                 </Card>
@@ -112,44 +145,46 @@ export default function ProgressTracker() {
                                 </CardTitle>
                                 <CardDescription>Record your body measurements and weight</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="weight">Weight (lbs)</Label>
-                                        <Input id="weight" placeholder="172" />
+                            <CardContent>
+                                <form className="space-y-4" onSubmit={logMeasurements}>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="weight">Weight (lbs)</Label>
+                                            <Input name="weight" placeholder="172" type="number" step="0.1" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="bodyFat">Body Fat (%)</Label>
+                                            <Input name="bodyFat" placeholder="15.2" type="number" step="0.1" />
+                                        </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="body-fat">Body Fat (%)</Label>
-                                        <Input id="body-fat" placeholder="15.2" />
-                                    </div>
-                                </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="chest">Chest (in)</Label>
-                                        <Input id="chest" placeholder="42" />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="chest">Chest (in)</Label>
+                                            <Input name="chest" placeholder="42" type="number" step="0.1" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="waist">Waist (in)</Label>
+                                            <Input name="waist" placeholder="32" type="number" step="0.1" />
+                                        </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="waist">Waist (in)</Label>
-                                        <Input id="waist" placeholder="32" />
-                                    </div>
-                                </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="arms">Arms (in)</Label>
-                                        <Input id="arms" placeholder="15.5" />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="arms">Arms (in)</Label>
+                                            <Input name="arms" placeholder="15.5" type="number" step="0.1" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="thighs">Thighs (in)</Label>
+                                            <Input name="thighs" placeholder="24" type="number" step="0.1" />
+                                        </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="thighs">Thighs (in)</Label>
-                                        <Input id="thighs" placeholder="24" />
-                                    </div>
-                                </div>
 
-                                <Button className="w-full">
-                                    <Calendar className="w-4 h-4 mr-2" />
-                                    Log Today's Measurements
-                                </Button>
+                                    <Button className="w-full">
+                                        <Calendar className="w-4 h-4 mr-2" />
+                                        Log Today's Measurements
+                                    </Button>
+                                </form>
                             </CardContent>
                         </Card>
 
@@ -163,39 +198,9 @@ export default function ProgressTracker() {
                                 <CardDescription>Your measurement history</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                        <div>
-                                            <div className="font-semibold">Today</div>
-                                            <div className="text-sm text-muted-foreground">Dec 15, 2024</div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-semibold">172 lbs</div>
-                                            <div className="text-sm text-green-600">-0.5 lbs</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                        <div>
-                                            <div className="font-semibold">Last Week</div>
-                                            <div className="text-sm text-muted-foreground">Dec 8, 2024</div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-semibold">172.5 lbs</div>
-                                            <div className="text-sm text-green-600">-1.2 lbs</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                        <div>
-                                            <div className="font-semibold">2 Weeks Ago</div>
-                                            <div className="text-sm text-muted-foreground">Dec 1, 2024</div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-semibold">173.7 lbs</div>
-                                            <div className="text-sm text-green-600">-0.8 lbs</div>
-                                        </div>
-                                    </div>
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <TrendingUp className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                    <p>History will appear here once you log more data.</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -213,31 +218,33 @@ export default function ProgressTracker() {
                                 </CardTitle>
                                 <CardDescription>Record your strength and endurance progress</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="exercise">Exercise</Label>
-                                    <Input id="exercise" placeholder="Bench Press" />
-                                </div>
+                            <CardContent>
+                                <form className="space-y-4" onSubmit={logPerformance}>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="exercise">Exercise</Label>
+                                        <Input name="exercise" placeholder="Bench Press" required />
+                                    </div>
 
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="weight-lifted">Weight (lbs)</Label>
-                                        <Input id="weight-lifted" placeholder="185" />
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="weight">Weight (lbs)</Label>
+                                            <Input name="weight" placeholder="185" type="number" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="reps">Reps</Label>
+                                            <Input name="reps" placeholder="8" type="number" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="sets">Sets</Label>
+                                            <Input name="sets" placeholder="3" type="number" required />
+                                        </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="reps">Reps</Label>
-                                        <Input id="reps" placeholder="8" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="sets">Sets</Label>
-                                        <Input id="sets" placeholder="3" />
-                                    </div>
-                                </div>
 
-                                <Button className="w-full">
-                                    <Calendar className="w-4 h-4 mr-2" />
-                                    Log Performance
-                                </Button>
+                                    <Button className="w-full">
+                                        <Calendar className="w-4 h-4 mr-2" />
+                                        Log Performance
+                                    </Button>
+                                </form>
                             </CardContent>
                         </Card>
 
@@ -248,39 +255,9 @@ export default function ProgressTracker() {
                                 <CardDescription>Your personal bests and recent lifts</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                        <div>
-                                            <div className="font-semibold">Bench Press</div>
-                                            <div className="text-sm text-muted-foreground">Personal Best</div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-semibold">185 lbs</div>
-                                            <div className="text-sm text-green-600">+5 lbs</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                        <div>
-                                            <div className="font-semibold">Squat</div>
-                                            <div className="text-sm text-muted-foreground">Personal Best</div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-semibold">225 lbs</div>
-                                            <div className="text-sm text-green-600">+10 lbs</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                        <div>
-                                            <div className="font-semibold">Deadlift</div>
-                                            <div className="text-sm text-muted-foreground">Personal Best</div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-semibold">275 lbs</div>
-                                            <div className="text-sm text-green-600">+15 lbs</div>
-                                        </div>
-                                    </div>
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <Dumbbell className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                    <p>History will appear here once you log more data.</p>
                                 </div>
                             </CardContent>
                         </Card>

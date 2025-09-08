@@ -40,7 +40,7 @@ export default function Home() {
 
 const Hero = memo(() => {
     return (
-        <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted to-accent/10 overflow-hidden">
+        <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted to-accent/10 overflow-hidden pt-20">
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,theme(colors.primary/10),transparent_50%)] pointer-events-none" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,theme(colors.accent/8),transparent_50%)] pointer-events-none" />

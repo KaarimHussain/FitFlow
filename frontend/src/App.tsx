@@ -16,6 +16,7 @@ import NutritionLogger from "./views/User/NutritionLogger";
 import ProgressTracker from "./views/User/ProgressTracker";
 import WorkoutForm from "./views/User/WorkoutForm";
 import WorkoutHistory from "./views/User/WorkoutHistory";
+import RecipeDatabase from "./views/Public/RecipeDatabase";
 
 function App() {
   return (
@@ -25,7 +26,6 @@ function App() {
           <Navbar />
           <NotificationContainer />
           <Routes>
-            {/* Base Route */}
 
             {/* Auth Routes - Accessible only when NOT logged in */}
             <Route element={<AuthRoutes />}>
@@ -44,6 +44,9 @@ function App() {
               <Route path="/nutrition" element={<NutritionLogger />} />
               <Route path="/progress" element={<ProgressTracker />} />
             </Route>
+
+            {/* Public Routes */}
+            <Route path="/recipes" element={<RecipeDatabase />} />
           </Routes>
         </AuthProvider>
       </NotificationProvider>

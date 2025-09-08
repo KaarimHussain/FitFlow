@@ -1,53 +1,45 @@
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Link } from "react-router-dom"
+import { apiService } from "@/services/api.service"
+import type { Workout, Nutrition } from "@/services/api.service"
 import {
-    Activity,
-    Apple,
-    TrendingUp,
-    Dumbbell,
-    Target,
-    Calendar,
-    Clock,
-    Flame,
-    Trophy,
-    Plus,
-    BarChart3,
-    PieChart,
-    LineChart,
+    Activity, Apple, TrendingUp, Dumbbell, Target, Calendar, Clock, Flame, Trophy, Plus,
+    BarChart3, PieChart, LineChart,
 } from "lucide-react"
 
-// Mock data for demonstration
-const mockData = {
-    todayStats: {
-        workoutsCompleted: 1,
-        caloriesBurned: 450,
-        caloriesConsumed: 1850,
-        waterIntake: 6,
-        activeMinutes: 75,
-    },
-    weeklyGoals: {
-        workouts: { current: 4, target: 5 },
-        calories: { current: 2100, target: 2200 },
-        water: { current: 7, target: 8 },
-    },
-    recentWorkouts: [
-        { name: "Upper Body Strength", duration: "45 min", calories: 320, date: "Today" },
-        { name: "Cardio HIIT", duration: "30 min", calories: 280, date: "Yesterday" },
-        { name: "Leg Day", duration: "60 min", calories: 420, date: "2 days ago" },
-    ],
-    nutritionSummary: {
-        calories: 1850,
-        protein: 120,
-        carbs: 180,
-        fat: 65,
-        targetCalories: 2200,
-    },
-}
-
 export default function Dashboard() {
+    /* ---------- state ---------- */
+    const [todayNutrition, setTodayNutrition] = useState<Nutrition | null>(null)
+    const [todayWorkouts, setTodayWorkouts] = useState<Workout[]>([])
+    const [weeklyWorkouts, setWeeklyWorkouts] = useState<Workout[]>([])
+
+    /* ---------- on mount ---------- */
+    useEffect(() => {
+        const today = new Date().toISOString().slice(0, 10)
+        Promise.all([
+            apiService.getNutrition(today).then(n => setTodayNutrition(n[0] ?? null)),
+            apiService.getWorkouts().then(w => {
+                const todayStr = new Date().toDateString()
+                const weekStart = new Date()
+                weekStart.setDate(weekStart.getDate() - 7)
+                setTodayWorkouts(w.filter(x => new Date(x.date).toDateString() === todayStr))
+                setWeeklyWorkouts(w.filter(x => new Date(x.date) >= weekStart))
+            }),
+        ])
+    }, [])
+
+    /* ---------- helpers ---------- */
+    const caloriesConsumed = todayNutrition?.totalCalories ?? 0
+    const caloriesBurned = todayWorkouts.reduce((s, w) => s + (w.caloriesBurned ?? 0), 0)
+    const targetCalories = 2200
+    const weeklyGoal = 5
+    const waterTarget = 8
+    const waterCurrent = 6 /* no backend field – keep static */
+
     return (
         <div className="min-h-screen bg-background py-25 px-6">
             <div className="max-w-7xl mx-auto space-y-8">
@@ -65,7 +57,7 @@ export default function Dashboard() {
                             <Dumbbell className="h-4 w-4 text-primary" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-card-foreground">{mockData.todayStats.workoutsCompleted}</div>
+                            <div className="text-2xl font-bold text-card-foreground">{todayWorkouts.length}</div>
                             <p className="text-xs text-muted-foreground">+20% from yesterday</p>
                         </CardContent>
                     </Card>
@@ -76,7 +68,7 @@ export default function Dashboard() {
                             <Flame className="h-4 w-4 text-chart-4" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-card-foreground">{mockData.todayStats.caloriesBurned}</div>
+                            <div className="text-2xl font-bold text-card-foreground">{caloriesBurned}</div>
                             <p className="text-xs text-muted-foreground">Target: 500 kcal</p>
                         </CardContent>
                     </Card>
@@ -87,8 +79,8 @@ export default function Dashboard() {
                             <Apple className="h-4 w-4 text-chart-2" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-card-foreground">{mockData.todayStats.caloriesConsumed}</div>
-                            <p className="text-xs text-muted-foreground">Target: {mockData.nutritionSummary.targetCalories} kcal</p>
+                            <div className="text-2xl font-bold text-card-foreground">{caloriesConsumed}</div>
+                            <p className="text-xs text-muted-foreground">Target: {targetCalories} kcal</p>
                         </CardContent>
                     </Card>
 
@@ -98,7 +90,9 @@ export default function Dashboard() {
                             <Activity className="h-4 w-4 text-chart-1" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-card-foreground">{mockData.todayStats.activeMinutes}</div>
+                            <div className="text-2xl font-bold text-card-foreground">
+                                {todayWorkouts.reduce((s, w) => s + (w.duration ?? 0), 0)}
+                            </div>
                             <p className="text-xs text-muted-foreground">Goal: 60 min</p>
                         </CardContent>
                     </Card>
@@ -106,7 +100,6 @@ export default function Dashboard() {
 
                 {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Workout Tracking Section */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Quick Actions */}
                         <Card className="bg-card border-border">
@@ -126,19 +119,13 @@ export default function Dashboard() {
                                         </Button>
                                     </Link>
                                     <Link to="/workouts/new">
-                                        <Button
-                                            variant="outline"
-                                            className="h-20 flex flex-col items-center justify-center gap-2 bg-transparent w-full"
-                                        >
+                                        <Button variant="outline" className="h-20 flex flex-col items-center justify-center gap-2 bg-transparent w-full">
                                             <Target className="h-5 w-5" />
                                             <span>Quick Log</span>
                                         </Button>
                                     </Link>
                                     <Link to="/workouts/history">
-                                        <Button
-                                            variant="outline"
-                                            className="h-20 flex flex-col items-center justify-center gap-2 bg-transparent w-full"
-                                        >
+                                        <Button variant="outline" className="h-20 flex flex-col items-center justify-center gap-2 bg-transparent w-full">
                                             <Calendar className="h-5 w-5" />
                                             <span>Schedule</span>
                                         </Button>
@@ -155,27 +142,27 @@ export default function Dashboard() {
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">
-                                    {mockData.recentWorkouts.map((workout, index) => (
-                                        <div key={index} className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                                    {todayWorkouts.slice(0, 3).map((w, idx) => (
+                                        <div key={idx} className="flex items-center justify-between p-4 bg-muted rounded-lg">
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2 bg-primary/10 rounded-full">
                                                     <Dumbbell className="h-4 w-4 text-primary" />
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-medium text-card-foreground">{workout.name}</h4>
+                                                    <h4 className="font-medium text-card-foreground">{w.name}</h4>
                                                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                                         <span className="flex items-center gap-1">
                                                             <Clock className="h-3 w-3" />
-                                                            {workout.duration}
+                                                            {w.duration ?? 0} min
                                                         </span>
                                                         <span className="flex items-center gap-1">
                                                             <Flame className="h-3 w-3" />
-                                                            {workout.calories} kcal
+                                                            {w.caloriesBurned ?? 0} kcal
                                                         </span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <Badge variant="secondary">{workout.date}</Badge>
+                                            <Badge variant="secondary">Today</Badge>
                                         </div>
                                     ))}
                                 </div>
@@ -199,30 +186,25 @@ export default function Dashboard() {
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-muted-foreground">Calories</span>
                                         <span className="font-medium text-card-foreground">
-                                            {mockData.nutritionSummary.calories}/{mockData.nutritionSummary.targetCalories}
+                                            {caloriesConsumed}/{targetCalories}
                                         </span>
                                     </div>
-                                    <Progress
-                                        value={(mockData.nutritionSummary.calories / mockData.nutritionSummary.targetCalories) * 100}
-                                        className="h-2"
-                                    />
+                                    <Progress value={(caloriesConsumed / targetCalories) * 100} className="h-2" />
                                 </div>
-
                                 <div className="grid grid-cols-3 gap-2 text-center">
                                     <div className="p-2 bg-muted rounded">
-                                        <div className="text-sm font-medium text-card-foreground">{mockData.nutritionSummary.protein}g</div>
+                                        <div className="text-sm font-medium text-card-foreground">{todayNutrition?.macros.protein ?? 0}g</div>
                                         <div className="text-xs text-muted-foreground">Protein</div>
                                     </div>
                                     <div className="p-2 bg-muted rounded">
-                                        <div className="text-sm font-medium text-card-foreground">{mockData.nutritionSummary.carbs}g</div>
+                                        <div className="text-sm font-medium text-card-foreground">{todayNutrition?.macros.carbs ?? 0}g</div>
                                         <div className="text-xs text-muted-foreground">Carbs</div>
                                     </div>
                                     <div className="p-2 bg-muted rounded">
-                                        <div className="text-sm font-medium text-card-foreground">{mockData.nutritionSummary.fat}g</div>
+                                        <div className="text-sm font-medium text-card-foreground">{todayNutrition?.macros.fat ?? 0}g</div>
                                         <div className="text-xs text-muted-foreground">Fat</div>
                                     </div>
                                 </div>
-
                                 <Link to="/nutrition">
                                     <Button className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90">
                                         <Plus className="h-4 w-4 mr-2" />
@@ -246,39 +228,26 @@ export default function Dashboard() {
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-muted-foreground">Workouts</span>
                                         <span className="font-medium text-card-foreground">
-                                            {mockData.weeklyGoals.workouts.current}/{mockData.weeklyGoals.workouts.target}
+                                            {weeklyWorkouts.length}/{weeklyGoal}
                                         </span>
                                     </div>
-                                    <Progress
-                                        value={(mockData.weeklyGoals.workouts.current / mockData.weeklyGoals.workouts.target) * 100}
-                                        className="h-2"
-                                    />
+                                    <Progress value={(weeklyWorkouts.length / weeklyGoal) * 100} className="h-2" />
                                 </div>
-
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-muted-foreground">Avg Calories</span>
-                                        <span className="font-medium text-card-foreground">
-                                            {mockData.weeklyGoals.calories.current}/{mockData.weeklyGoals.calories.target}
-                                        </span>
+                                        <span className="font-medium text-card-foreground">2100/2200</span>
                                     </div>
-                                    <Progress
-                                        value={(mockData.weeklyGoals.calories.current / mockData.weeklyGoals.calories.target) * 100}
-                                        className="h-2"
-                                    />
+                                    <Progress value={95} className="h-2" />
                                 </div>
-
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-muted-foreground">Water (glasses)</span>
                                         <span className="font-medium text-card-foreground">
-                                            {mockData.weeklyGoals.water.current}/{mockData.weeklyGoals.water.target}
+                                            {waterCurrent}/{waterTarget}
                                         </span>
                                     </div>
-                                    <Progress
-                                        value={(mockData.weeklyGoals.water.current / mockData.weeklyGoals.water.target) * 100}
-                                        className="h-2"
-                                    />
+                                    <Progress value={(waterCurrent / waterTarget) * 100} className="h-2" />
                                 </div>
                             </CardContent>
                         </Card>
@@ -307,7 +276,6 @@ export default function Dashboard() {
                                         <span className="text-xs">Strength</span>
                                     </Button>
                                 </div>
-
                                 <Link to="/progress">
                                     <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
                                         <Plus className="h-4 w-4 mr-2" />
@@ -327,15 +295,11 @@ export default function Dashboard() {
                                 <Dumbbell className="h-6 w-6" />
                                 Workout Management
                             </CardTitle>
-                            <CardDescription>
-                                Create, edit, and track your workout routines with detailed exercise logging
-                            </CardDescription>
+                            <CardDescription>Create, edit, and track your workout routines with detailed exercise logging</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Link to="/workouts/history">
-                                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                                    Manage Workouts
-                                </Button>
+                                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Manage Workouts</Button>
                             </Link>
                         </CardContent>
                     </Card>
@@ -350,9 +314,7 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent>
                             <Link to="/nutrition">
-                                <Button className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90">
-                                    Track Nutrition
-                                </Button>
+                                <Button className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90">Track Nutrition</Button>
                             </Link>
                         </CardContent>
                     </Card>
@@ -363,9 +325,7 @@ export default function Dashboard() {
                                 <TrendingUp className="h-6 w-6" />
                                 Progress Analytics
                             </CardTitle>
-                            <CardDescription>
-                                Visualize your fitness journey with detailed progress charts and metrics
-                            </CardDescription>
+                            <CardDescription>Visualize your fitness journey with detailed progress charts and metrics</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Link to="/progress">
