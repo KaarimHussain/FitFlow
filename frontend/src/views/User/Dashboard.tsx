@@ -1,45 +1,11 @@
-import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { Link } from "react-router-dom"
-import { apiService } from "@/services/api.service"
-import type { Workout, Nutrition } from "@/services/api.service"
 import {
-    Activity, Apple, TrendingUp, Dumbbell, Target, Calendar, Clock, Flame, Trophy, Plus,
-    BarChart3, PieChart, LineChart,
+    Dumbbell, Apple, TrendingUp, Plus
 } from "lucide-react"
 
 export default function Dashboard() {
-    /* ---------- state ---------- */
-    const [todayNutrition, setTodayNutrition] = useState<Nutrition | null>(null)
-    const [todayWorkouts, setTodayWorkouts] = useState<Workout[]>([])
-    const [weeklyWorkouts, setWeeklyWorkouts] = useState<Workout[]>([])
-
-    /* ---------- on mount ---------- */
-    useEffect(() => {
-        const today = new Date().toISOString().slice(0, 10)
-        Promise.all([
-            apiService.getNutrition(today).then(n => setTodayNutrition(n[0] ?? null)),
-            apiService.getWorkouts().then(w => {
-                const todayStr = new Date().toDateString()
-                const weekStart = new Date()
-                weekStart.setDate(weekStart.getDate() - 7)
-                setTodayWorkouts(w.filter(x => new Date(x.date).toDateString() === todayStr))
-                setWeeklyWorkouts(w.filter(x => new Date(x.date) >= weekStart))
-            }),
-        ])
-    }, [])
-
-    /* ---------- helpers ---------- */
-    const caloriesConsumed = todayNutrition?.totalCalories ?? 0
-    const caloriesBurned = todayWorkouts.reduce((s, w) => s + (w.caloriesBurned ?? 0), 0)
-    const targetCalories = 2200
-    const weeklyGoal = 5
-    const waterTarget = 8
-    const waterCurrent = 6 /* no backend field – keep static */
-
     return (
         <div className="min-h-screen bg-background py-25 px-6">
             <div className="max-w-7xl mx-auto space-y-8">
@@ -49,288 +15,127 @@ export default function Dashboard() {
                     <p className="text-muted-foreground text-lg">Track your fitness journey and achieve your goals</p>
                 </div>
 
-                {/* Quick Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Card className="bg-card border-border">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-card-foreground">Today's Workouts</CardTitle>
-                            <Dumbbell className="h-4 w-4 text-primary" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-card-foreground">{todayWorkouts.length}</div>
-                            <p className="text-xs text-muted-foreground">+20% from yesterday</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="bg-card border-border">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-card-foreground">Calories Burned</CardTitle>
-                            <Flame className="h-4 w-4 text-chart-4" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-card-foreground">{caloriesBurned}</div>
-                            <p className="text-xs text-muted-foreground">Target: 500 kcal</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="bg-card border-border">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-card-foreground">Calories Consumed</CardTitle>
-                            <Apple className="h-4 w-4 text-chart-2" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-card-foreground">{caloriesConsumed}</div>
-                            <p className="text-xs text-muted-foreground">Target: {targetCalories} kcal</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="bg-card border-border">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-card-foreground">Active Minutes</CardTitle>
-                            <Activity className="h-4 w-4 text-chart-1" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-card-foreground">
-                                {todayWorkouts.reduce((s, w) => s + (w.duration ?? 0), 0)}
-                            </div>
-                            <p className="text-xs text-muted-foreground">Goal: 60 min</p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 space-y-6">
-                        {/* Quick Actions */}
-                        <Card className="bg-card border-border">
-                            <CardHeader>
-                                <CardTitle className="text-card-foreground flex items-center gap-2">
-                                    <Dumbbell className="h-5 w-5 text-primary" />
-                                    Workout Tracking
-                                </CardTitle>
-                                <CardDescription>Log and monitor your workouts</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <Link to="/workouts/new">
-                                        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-20 flex flex-col items-center justify-center gap-2 w-full">
-                                            <Plus className="h-5 w-5" />
-                                            <span>New Workout</span>
-                                        </Button>
-                                    </Link>
-                                    <Link to="/workouts/new">
-                                        <Button variant="outline" className="h-20 flex flex-col items-center justify-center gap-2 bg-transparent w-full">
-                                            <Target className="h-5 w-5" />
-                                            <span>Quick Log</span>
-                                        </Button>
-                                    </Link>
-                                    <Link to="/workouts/history">
-                                        <Button variant="outline" className="h-20 flex flex-col items-center justify-center gap-2 bg-transparent w-full">
-                                            <Calendar className="h-5 w-5" />
-                                            <span>Schedule</span>
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Recent Workouts */}
-                        <Card className="bg-card border-border">
-                            <CardHeader>
-                                <CardTitle className="text-card-foreground">Recent Workouts</CardTitle>
-                                <CardDescription>Your latest training sessions</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {todayWorkouts.slice(0, 3).map((w, idx) => (
-                                        <div key={idx} className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-primary/10 rounded-full">
-                                                    <Dumbbell className="h-4 w-4 text-primary" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-medium text-card-foreground">{w.name}</h4>
-                                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                                        <span className="flex items-center gap-1">
-                                                            <Clock className="h-3 w-3" />
-                                                            {w.duration ?? 0} min
-                                                        </span>
-                                                        <span className="flex items-center gap-1">
-                                                            <Flame className="h-3 w-3" />
-                                                            {w.caloriesBurned ?? 0} kcal
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <Badge variant="secondary">Today</Badge>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Nutrition & Progress Sidebar */}
-                    <div className="space-y-6">
-                        {/* Nutrition Summary */}
-                        <Card className="bg-card border-border">
-                            <CardHeader>
-                                <CardTitle className="text-card-foreground flex items-center gap-2">
-                                    <Apple className="h-5 w-5 text-chart-2" />
-                                    Nutrition Today
-                                </CardTitle>
-                                <CardDescription>Daily intake summary</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Calories</span>
-                                        <span className="font-medium text-card-foreground">
-                                            {caloriesConsumed}/{targetCalories}
-                                        </span>
-                                    </div>
-                                    <Progress value={(caloriesConsumed / targetCalories) * 100} className="h-2" />
-                                </div>
-                                <div className="grid grid-cols-3 gap-2 text-center">
-                                    <div className="p-2 bg-muted rounded">
-                                        <div className="text-sm font-medium text-card-foreground">{todayNutrition?.macros.protein ?? 0}g</div>
-                                        <div className="text-xs text-muted-foreground">Protein</div>
-                                    </div>
-                                    <div className="p-2 bg-muted rounded">
-                                        <div className="text-sm font-medium text-card-foreground">{todayNutrition?.macros.carbs ?? 0}g</div>
-                                        <div className="text-xs text-muted-foreground">Carbs</div>
-                                    </div>
-                                    <div className="p-2 bg-muted rounded">
-                                        <div className="text-sm font-medium text-card-foreground">{todayNutrition?.macros.fat ?? 0}g</div>
-                                        <div className="text-xs text-muted-foreground">Fat</div>
-                                    </div>
-                                </div>
-                                <Link to="/nutrition">
-                                    <Button className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90">
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Log Meal
-                                    </Button>
-                                </Link>
-                            </CardContent>
-                        </Card>
-
-                        {/* Weekly Goals */}
-                        <Card className="bg-card border-border">
-                            <CardHeader>
-                                <CardTitle className="text-card-foreground flex items-center gap-2">
-                                    <Trophy className="h-5 w-5 text-chart-1" />
-                                    Weekly Goals
-                                </CardTitle>
-                                <CardDescription>Track your progress</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Workouts</span>
-                                        <span className="font-medium text-card-foreground">
-                                            {weeklyWorkouts.length}/{weeklyGoal}
-                                        </span>
-                                    </div>
-                                    <Progress value={(weeklyWorkouts.length / weeklyGoal) * 100} className="h-2" />
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Avg Calories</span>
-                                        <span className="font-medium text-card-foreground">2100/2200</span>
-                                    </div>
-                                    <Progress value={95} className="h-2" />
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Water (glasses)</span>
-                                        <span className="font-medium text-card-foreground">
-                                            {waterCurrent}/{waterTarget}
-                                        </span>
-                                    </div>
-                                    <Progress value={(waterCurrent / waterTarget) * 100} className="h-2" />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Progress Tracking */}
-                        <Card className="bg-card border-border">
-                            <CardHeader>
-                                <CardTitle className="text-card-foreground flex items-center gap-2">
-                                    <TrendingUp className="h-5 w-5 text-chart-3" />
-                                    Progress Tracking
-                                </CardTitle>
-                                <CardDescription>Monitor your improvements</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-3 gap-2">
-                                    <Button variant="outline" size="sm" className="flex flex-col items-center gap-1 h-16 bg-transparent">
-                                        <BarChart3 className="h-4 w-4" />
-                                        <span className="text-xs">Weight</span>
-                                    </Button>
-                                    <Button variant="outline" size="sm" className="flex flex-col items-center gap-1 h-16 bg-transparent">
-                                        <PieChart className="h-4 w-4" />
-                                        <span className="text-xs">Body Fat</span>
-                                    </Button>
-                                    <Button variant="outline" size="sm" className="flex flex-col items-center gap-1 h-16 bg-transparent">
-                                        <LineChart className="h-4 w-4" />
-                                        <span className="text-xs">Strength</span>
-                                    </Button>
-                                </div>
-                                <Link to="/progress">
-                                    <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Record Progress
-                                    </Button>
-                                </Link>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-
                 {/* Feature Navigation Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 hover:shadow-lg transition-shadow cursor-pointer">
+                    <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 hover:shadow-lg transition-shadow ">
                         <CardHeader>
                             <CardTitle className="text-primary flex items-center gap-2">
                                 <Dumbbell className="h-6 w-6" />
-                                Workout Management
+                                Workout Tracker
                             </CardTitle>
                             <CardDescription>Create, edit, and track your workout routines with detailed exercise logging</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Link to="/workouts/history">
-                                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Manage Workouts</Button>
+                            <Link to="/workouts">
+                                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Track Workouts
+                                </Button>
                             </Link>
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20 hover:shadow-lg transition-shadow cursor-pointer">
+                    <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20 hover:shadow-lg transition-shadow">
                         <CardHeader>
-                            <CardTitle className="text-secondary flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2">
                                 <Apple className="h-6 w-6" />
-                                Nutrition Tracking
+                                Nutrition Tracker
                             </CardTitle>
                             <CardDescription>Log meals, track macros, and monitor your daily nutritional intake</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Link to="/nutrition">
-                                <Button className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90">Track Nutrition</Button>
+                                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 cursor-pointer">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Track Nutrition
+                                </Button>
                             </Link>
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20 hover:shadow-lg transition-shadow cursor-pointer">
+                    <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20 hover:shadow-lg transition-shadow">
                         <CardHeader>
-                            <CardTitle className="text-accent flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2">
                                 <TrendingUp className="h-6 w-6" />
-                                Progress Analytics
+                                Progress Tracker
                             </CardTitle>
                             <CardDescription>Visualize your fitness journey with detailed progress charts and metrics</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Link to="/progress">
-                                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90">View Progress</Button>
+                                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 cursor-pointer">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Track Progress
+                                </Button>
                             </Link>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Information Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Welcome to Your Fitness Dashboard</CardTitle>
+                            <CardDescription>Your journey to better health starts here</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <p className="text-muted-foreground">
+                                This dashboard provides you with all the tools you need to track your fitness journey.
+                                Use the cards above to navigate to the different tracking sections.
+                            </p>
+                            <ul className="space-y-2 text-muted-foreground">
+                                <li className="flex items-start gap-2">
+                                    <Dumbbell className="h-4 w-4 mt-0.5 text-primary" />
+                                    <span>Track your workouts and exercises with detailed logging</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <Apple className="h-4 w-4 mt-0.5 text-secondary" />
+                                    <span>Monitor your nutrition and macronutrient intake</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <TrendingUp className="h-4 w-4 mt-0.5 text-accent" />
+                                    <span>Visualize your progress with detailed charts and metrics</span>
+                                </li>
+                            </ul>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Getting Started</CardTitle>
+                            <CardDescription>Quick tips to begin your journey</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-3">
+                                <div className="flex items-start gap-3">
+                                    <div className="bg-primary/10 p-2 rounded-full">
+                                        <Dumbbell className="h-4 w-4 text-primary" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-medium">Log Your First Workout</h4>
+                                        <p className="text-sm text-muted-foreground">Start by recording your workout routine with exercises, sets, and reps.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <div className="bg-secondary/10 p-2 rounded-full">
+                                        <Apple className="h-4 w-4 text-secondary" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-medium">Track Your Nutrition</h4>
+                                        <p className="text-sm text-muted-foreground">Log your meals and monitor your daily calorie and macronutrient intake.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <div className="bg-accent/10 p-2 rounded-full">
+                                        <TrendingUp className="h-4 w-4 text-accent" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-medium">Record Your Progress</h4>
+                                        <p className="text-sm text-muted-foreground">Track your weight, measurements, and performance metrics over time.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

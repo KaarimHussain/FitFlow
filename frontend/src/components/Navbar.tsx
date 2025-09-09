@@ -37,8 +37,8 @@ import Logo from "./Logo"
 // Enhanced feature arrays with icons and featured items
 const workoutFeatures = [
     {
-        title: "Create Workout",
-        href: "/workouts/create",
+        title: "Workouts",
+        href: "/workouts",
         description: "Build custom workout routines with detailed exercise information",
         icon: Dumbbell,
         featured: true,
@@ -70,7 +70,7 @@ const workoutFeatures = [
 const nutritionFeatures = [
     {
         title: "Meal Logger",
-        href: "/nutrition/log",
+        href: "/nutrition",
         description: "Log daily meals with detailed nutritional information",
         icon: Apple,
         featured: true,
@@ -102,7 +102,7 @@ const nutritionFeatures = [
 const progressFeatures = [
     {
         title: "Body Metrics",
-        href: "/progress/metrics",
+        href: "/progress",
         description: "Track weight, measurements, and physical metrics",
         icon: Ruler,
         featured: true,

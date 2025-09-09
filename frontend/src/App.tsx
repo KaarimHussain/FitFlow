@@ -12,11 +12,12 @@ import Profile from "./views/User/Profile";
 import Dashboard from "./views/User/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRoutes from "./components/AuthRoutes";
-import NutritionLogger from "./views/User/NutritionLogger";
-import ProgressTracker from "./views/User/ProgressTracker";
-import WorkoutForm from "./views/User/WorkoutForm";
-import WorkoutHistory from "./views/User/WorkoutHistory";
 import RecipeDatabase from "./views/Public/RecipeDatabase";
+
+// Import new feature pages
+import WorkoutTracker from "./views/User/Workouts/WorkoutTracker";
+import NutritionTracker from "./views/User/Nutrition/NutritionTracker";
+import ProgressTracker from "./views/User/Progress/ProgressTracker";
 
 function App() {
   return (
@@ -38,10 +39,8 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/profile" element={<Profile />} />
               <Route path="/dashboard" element={<Dashboard />} />
-
-              <Route path="/workouts/new" element={<WorkoutForm />} />
-              <Route path="/workouts/history" element={<WorkoutHistory />} />
-              <Route path="/nutrition" element={<NutritionLogger />} />
+              <Route path="/workouts" element={<WorkoutTracker />} />
+              <Route path="/nutrition" element={<NutritionTracker />} />
               <Route path="/progress" element={<ProgressTracker />} />
             </Route>
 
