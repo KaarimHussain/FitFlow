@@ -18,6 +18,7 @@ import RecipeDatabase from "./views/Public/RecipeDatabase";
 import WorkoutTracker from "./views/User/Workouts/WorkoutTracker";
 import NutritionTracker from "./views/User/Nutrition/NutritionTracker";
 import ProgressTracker from "./views/User/Progress/ProgressTracker";
+import ForgetPassword from "./views/Auth/ForgetPassword";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/login" element={<SignIn />} />
+              <Route path="/auth/forgot-password" element={<ForgetPassword />} />
             </Route>
 
             {/* Protected Routes - Require authentication */}

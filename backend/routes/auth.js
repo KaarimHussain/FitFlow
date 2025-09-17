@@ -4,6 +4,10 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const router = express.Router();
 
+// --- Forget Password, OTP, and Reset Password ---
+const crypto = require('crypto');
+const { sendOTPEmail } = require('../utils/email');
+
 // Generate JWT token
 const generateToken = (userId) => {
     return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
@@ -211,6 +215,91 @@ router.post('/verify', protect, async (req, res) => {
             success: false,
             message: 'Server error during verification'
         });
+    }
+});
+
+// @route   POST /api/auth/forgot-password
+// @desc    Send OTP to user's email for password reset
+// @access  Public
+router.post('/forgot-password', async (req, res) => {
+
+    console.log("Forgot password request received");
+
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Email is required' });
+        }
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+        user.resetPasswordOTP = otp;
+        user.resetPasswordOTPExpires = new Date(otpExpires);
+        await user.save();
+        await sendOTPEmail(email, otp);
+        res.status(200).json({ success: true, message: 'OTP sent to email' });
+    } catch (error) {
+        console.log("Error Sending OTP:", error);
+
+        res.status(500).json({ success: false, message: 'Error sending OTP' });
+    }
+});
+
+// @route   POST /api/auth/verify-otp
+// @desc    Verify OTP for password reset
+// @access  Public
+router.post('/verify-otp', async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        if (!email || !otp) {
+            return res.status(400).json({ success: false, message: 'Email and OTP are required' });
+        }
+        const user = await User.findOne({ email });
+        if (!user || !user.resetPasswordOTP) {
+            return res.status(400).json({ success: false, message: 'Invalid request' });
+        }
+        if (user.resetPasswordOTP !== otp) {
+            return res.status(400).json({ success: false, message: 'Invalid OTP' });
+        }
+        if (user.resetPasswordOTPExpires < new Date()) {
+            return res.status(400).json({ success: false, message: 'OTP expired' });
+        }
+        res.status(200).json({ success: true, message: 'OTP verified' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error verifying OTP' });
+    }
+});
+
+// @route   POST /api/auth/reset-password
+// @desc    Reset password using OTP
+// @access  Public
+router.post('/reset-password', async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ success: false, message: 'Email, OTP, and new password are required' });
+        }
+        const user = await User.findOne({ email }).select('+password');
+        if (!user || !user.resetPasswordOTP) {
+            return res.status(400).json({ success: false, message: 'Invalid request' });
+        }
+        if (user.resetPasswordOTP !== otp) {
+            return res.status(400).json({ success: false, message: 'Invalid OTP' });
+        }
+        if (user.resetPasswordOTPExpires < new Date()) {
+            return res.status(400).json({ success: false, message: 'OTP expired' });
+        }
+        user.password = newPassword;
+        user.resetPasswordOTP = undefined;
+        user.resetPasswordOTPExpires = undefined;
+        await user.save();
+        res.status(200).json({ success: true, message: 'Password reset successful' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error resetting password' });
     }
 });
 
