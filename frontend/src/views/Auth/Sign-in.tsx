@@ -10,7 +10,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useNotificationService } from "@/context/notification-context"
 
 export default function SignIn() {
-
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({

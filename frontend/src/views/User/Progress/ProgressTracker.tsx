@@ -1,23 +1,20 @@
-// src/views/User/Progress/ProgressTracker.tsx
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { progressService, type ProgressEntry, type Measurements, type Performance } from '@/services/progressService';
-import { useNotificationService } from '@/context/notification-context';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Save, ArrowLeft, TrendingUp, Ruler, Dumbbell, Scale, Trash2 } from 'lucide-react';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+"use client"
+
+import type React from "react"
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { progressService, type ProgressEntry, type Measurements, type Performance } from "@/services/progressService"
+import { useNotificationService } from "@/context/notification-context"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Save, ArrowLeft, TrendingUp, Ruler, Dumbbell, Scale, Trash2 } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   ChartContainer,
   ChartTooltip,
@@ -34,7 +31,8 @@ import {
   BarChart,
   XAxis,
   YAxis,
-  CartesianGrid
+  CartesianGrid,
+  ResponsiveContainer,
 } from "recharts"
 
 // Enhanced Chart configurations with better color schemes
@@ -92,40 +90,40 @@ const performanceChartConfig = {
 }
 
 const ProgressTracker: React.FC = () => {
-  const navigate = useNavigate();
-  const { error: showError, success: showSuccess } = useNotificationService();
-  const [progressEntries, setProgressEntries] = useState<ProgressEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate()
+  const { error: showError, success: showSuccess } = useNotificationService()
+  const [progressEntries, setProgressEntries] = useState<ProgressEntry[]>([])
+  const [loading, setLoading] = useState(true)
 
   // Form state for creating/editing progress entries
-  const [weight, setWeight] = useState<number | undefined>(undefined);
-  const [measurements, setMeasurements] = useState<Measurements>({});
-  const [performance, setPerformance] = useState<Performance>({});
-  const [notes, setNotes] = useState('');
+  const [weight, setWeight] = useState<number | undefined>(undefined)
+  const [measurements, setMeasurements] = useState<Measurements>({})
+  const [performance, setPerformance] = useState<Performance>({})
+  const [notes, setNotes] = useState("")
 
   // Validation errors
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Load progress entries on component mount
   useEffect(() => {
-    fetchProgressEntries();
-  }, []);
+    fetchProgressEntries()
+  }, [])
 
   const fetchProgressEntries = async () => {
     try {
-      setLoading(true);
-      const data = await progressService.getAllProgressEntries();
-      setProgressEntries(data);
+      setLoading(true)
+      const data = await progressService.getAllProgressEntries()
+      setProgressEntries(data)
     } catch (err) {
-      showError('Failed to fetch progress entries. Please try again later.');
-      console.error(err);
+      showError("Failed to fetch progress entries. Please try again later.")
+      console.error(err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: Record<string, string> = {}
 
     // At least one field must be filled
     if (
@@ -140,55 +138,55 @@ const ProgressTracker: React.FC = () => {
       !performance.deadlift &&
       !performance.run5k
     ) {
-      newErrors.general = 'Please enter at least one measurement or performance metric.';
+      newErrors.general = "Please enter at least one measurement or performance metric."
     }
 
     // Validate weight if provided
     if (weight !== undefined && weight <= 0) {
-      newErrors.weight = 'Weight must be greater than zero.';
+      newErrors.weight = "Weight must be greater than zero."
     }
 
     // Validate measurements if provided
     if (measurements.chest !== undefined && measurements.chest < 0) {
-      newErrors.chest = 'Chest measurement must be zero or a positive number.';
+      newErrors.chest = "Chest measurement must be zero or a positive number."
     }
     if (measurements.waist !== undefined && measurements.waist < 0) {
-      newErrors.waist = 'Waist measurement must be zero or a positive number.';
+      newErrors.waist = "Waist measurement must be zero or a positive number."
     }
     if (measurements.hips !== undefined && measurements.hips < 0) {
-      newErrors.hips = 'Hips measurement must be zero or a positive number.';
+      newErrors.hips = "Hips measurement must be zero or a positive number."
     }
     if (measurements.arms !== undefined && measurements.arms < 0) {
-      newErrors.arms = 'Arms measurement must be zero or a positive number.';
+      newErrors.arms = "Arms measurement must be zero or a positive number."
     }
     if (measurements.thighs !== undefined && measurements.thighs < 0) {
-      newErrors.thighs = 'Thighs measurement must be zero or a positive number.';
+      newErrors.thighs = "Thighs measurement must be zero or a positive number."
     }
 
     // Validate performance metrics if provided
     if (performance.benchPress !== undefined && performance.benchPress < 0) {
-      newErrors.benchPress = 'Bench press must be zero or a positive number.';
+      newErrors.benchPress = "Bench press must be zero or a positive number."
     }
     if (performance.squat !== undefined && performance.squat < 0) {
-      newErrors.squat = 'Squat must be zero or a positive number.';
+      newErrors.squat = "Squat must be zero or a positive number."
     }
     if (performance.deadlift !== undefined && performance.deadlift < 0) {
-      newErrors.deadlift = 'Deadlift must be zero or a positive number.';
+      newErrors.deadlift = "Deadlift must be zero or a positive number."
     }
     if (performance.run5k !== undefined && performance.run5k < 0) {
-      newErrors.run5k = '5K time must be zero or a positive number.';
+      newErrors.run5k = "5K time must be zero or a positive number."
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!validateForm()) {
-      showError('Please check the form for errors and try again.');
-      return;
+      showError("Please check the form for errors and try again.")
+      return
     }
 
     try {
@@ -196,153 +194,159 @@ const ProgressTracker: React.FC = () => {
         weight,
         measurements,
         performance,
-        notes
-      };
+        notes,
+      }
 
-      await progressService.createProgressEntry(progressData);
+      await progressService.createProgressEntry(progressData)
 
       // Reset form
-      setWeight(undefined);
-      setMeasurements({});
-      setPerformance({});
-      setNotes('');
-      setErrors({});
+      setWeight(undefined)
+      setMeasurements({})
+      setPerformance({})
+      setNotes("")
+      setErrors({})
 
       // Refresh progress entries list
-      fetchProgressEntries();
-      showSuccess('Progress entry saved successfully! Great work tracking your journey.');
+      fetchProgressEntries()
+      showSuccess("Progress entry saved successfully! Great work tracking your journey.")
     } catch (err) {
-      showError('Oops! Failed to save your progress entry. Please check your connection and try again.');
-      console.error(err);
+      showError("Oops! Failed to save your progress entry. Please check your connection and try again.")
+      console.error(err)
     }
-  };
+  }
 
   const handleDeleteProgressEntry = async (id: string) => {
     try {
-      await progressService.deleteProgressEntry(id);
-      fetchProgressEntries();
-      showSuccess('Progress entry removed successfully.');
+      await progressService.deleteProgressEntry(id)
+      fetchProgressEntries()
+      showSuccess("Progress entry removed successfully.")
     } catch (err) {
-      showError('Failed to delete progress entry. Please try again.');
-      console.error(err);
+      showError("Failed to delete progress entry. Please try again.")
+      console.error(err)
     }
-  };
+  }
 
   // Enhanced data preparation for charts with better sorting and formatting
   const weightData = progressEntries
-    .filter(entry => entry.weight)
-    .map(entry => ({
-      date: new Date(entry.date || entry.createdAt || '').toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
+    .filter((entry) => entry.weight)
+    .map((entry) => ({
+      date: new Date(entry.date || entry.createdAt || "").toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
       }),
-      fullDate: new Date(entry.date || entry.createdAt || ''),
-      weight: entry.weight
+      fullDate: new Date(entry.date || entry.createdAt || ""),
+      weight: entry.weight,
     }))
     .sort((a, b) => a.fullDate.getTime() - b.fullDate.getTime())
-    .map(({ fullDate, ...rest }) => rest);
+    .map(({ fullDate, ...rest }) => rest)
 
   const performanceData = progressEntries
-    .filter(entry => entry.performance && (
-      entry.performance.benchPress ||
-      entry.performance.squat ||
-      entry.performance.deadlift ||
-      entry.performance.run5k
-    ))
-    .map(entry => ({
-      date: new Date(entry.date || entry.createdAt || '').toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
+    .filter(
+      (entry) =>
+        entry.performance &&
+        (entry.performance.benchPress ||
+          entry.performance.squat ||
+          entry.performance.deadlift ||
+          entry.performance.run5k),
+    )
+    .map((entry) => ({
+      date: new Date(entry.date || entry.createdAt || "").toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
       }),
-      fullDate: new Date(entry.date || entry.createdAt || ''),
+      fullDate: new Date(entry.date || entry.createdAt || ""),
       benchPress: entry.performance?.benchPress,
       squat: entry.performance?.squat,
       deadlift: entry.performance?.deadlift,
-      run5k: entry.performance?.run5k
+      run5k: entry.performance?.run5k,
     }))
     .sort((a, b) => a.fullDate.getTime() - b.fullDate.getTime())
-    .map(({ fullDate, ...rest }) => rest);
+    .map(({ fullDate, ...rest }) => rest)
 
   const measurementsData = progressEntries
-    .filter(entry => entry.measurements && (
-      entry.measurements.chest ||
-      entry.measurements.waist ||
-      entry.measurements.hips ||
-      entry.measurements.arms ||
-      entry.measurements.thighs
-    ))
-    .map(entry => ({
-      date: new Date(entry.date || entry.createdAt || '').toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
+    .filter(
+      (entry) =>
+        entry.measurements &&
+        (entry.measurements.chest ||
+          entry.measurements.waist ||
+          entry.measurements.hips ||
+          entry.measurements.arms ||
+          entry.measurements.thighs),
+    )
+    .map((entry) => ({
+      date: new Date(entry.date || entry.createdAt || "").toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
       }),
-      fullDate: new Date(entry.date || entry.createdAt || ''),
+      fullDate: new Date(entry.date || entry.createdAt || ""),
       chest: entry.measurements?.chest,
       waist: entry.measurements?.waist,
       hips: entry.measurements?.hips,
       arms: entry.measurements?.arms,
-      thighs: entry.measurements?.thighs
+      thighs: entry.measurements?.thighs,
     }))
     .sort((a, b) => a.fullDate.getTime() - b.fullDate.getTime())
-    .map(({ fullDate, ...rest }) => rest);
+    .map(({ fullDate, ...rest }) => rest)
 
   if (loading) {
     return (
-      <div className="container mx-auto py-25">
-        <div className="flex items-center justify-center">
+      <div className="container mx-auto py-8 px-4">
+        <div className="flex items-center justify-center min-h-[400px]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <span className="ml-2">Loading your progress entries...</span>
+          <span className="ml-2 text-sm md:text-base">Loading your progress entries...</span>
         </div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="container mx-auto py-25 lg:px-20 md:px-10 px-4">
-      <div className="flex items-center justify-between mb-6">
+    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+          <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="h-9 w-9 shrink-0">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Progress Tracker</h1>
-            <p className="text-sm text-muted-foreground">Track your fitness journey and achievements</p>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold truncate">Progress Tracker</h1>
+            <p className="text-sm text-muted-foreground hidden sm:block">Track your fitness journey and achievements</p>
           </div>
         </div>
       </div>
 
       <Tabs defaultValue="record" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 h-10">
-          <TabsTrigger value="record" className="flex items-center gap-2 text-sm">
+        <TabsList className="grid w-full grid-cols-2 h-11">
+          <TabsTrigger value="record" className="flex items-center gap-2 text-sm font-medium">
             <Save className="h-4 w-4" />
-            Record
+            <span className="hidden sm:inline">Record Progress</span>
+            <span className="sm:hidden">Record</span>
           </TabsTrigger>
-          <TabsTrigger value="view" className="flex items-center gap-2 text-sm">
+          <TabsTrigger value="view" className="flex items-center gap-2 text-sm font-medium">
             <TrendingUp className="h-4 w-4" />
-            Progress
+            <span className="hidden sm:inline">View Progress</span>
+            <span className="sm:hidden">Charts</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="record" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-1">
-              <CardHeader className="pb-3">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6">
+            <Card className="xl:col-span-1 order-2 xl:order-1">
+              <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Scale className="h-5 w-5" />
+                  <Scale className="h-5 w-5 text-primary" />
                   New Entry
                 </CardTitle>
-                <CardDescription>Record your latest progress metrics</CardDescription>
+                <CardDescription className="text-sm">Record your latest progress metrics</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {errors.general && (
-                    <Alert variant="destructive">
-                      <AlertDescription>{errors.general}</AlertDescription>
+                    <Alert variant="destructive" className="py-2 px-3">
+                      <AlertDescription className="text-sm">{errors.general}</AlertDescription>
                     </Alert>
                   )}
 
                   <div className="space-y-2">
-                    <Label htmlFor="weight" className="flex items-center gap-1.5">
+                    <Label htmlFor="weight" className="flex items-center gap-1.5 text-sm font-medium">
                       <Scale className="h-4 w-4" />
                       Weight (kg/lbs)
                     </Label>
@@ -351,23 +355,23 @@ const ProgressTracker: React.FC = () => {
                       type="number"
                       min="0"
                       step="0.1"
-                      value={weight || ''}
+                      value={weight || ""}
                       onChange={(e) => {
-                        setWeight(parseFloat(e.target.value) || undefined);
+                        setWeight(Number.parseFloat(e.target.value) || undefined)
                         if (errors.weight) {
-                          setErrors(prev => {
-                            const newErrors = { ...prev };
-                            delete newErrors.weight;
-                            return newErrors;
-                          });
+                          setErrors((prev) => {
+                            const newErrors = { ...prev }
+                            delete newErrors.weight
+                            return newErrors
+                          })
                         }
                       }}
                       placeholder="Current weight"
-                      className={`h-9 ${errors.weight ? 'border-red-500' : ''}`}
+                      className={`h-10 text-base ${errors.weight ? "border-red-500 focus:border-red-500" : "focus:border-primary"}`}
                     />
                     {errors.weight && (
-                      <Alert variant="destructive" className="py-1 px-2">
-                        <AlertDescription className="text-xs">{errors.weight}</AlertDescription>
+                      <Alert variant="destructive" className="py-2 px-3">
+                        <AlertDescription className="text-sm">{errors.weight}</AlertDescription>
                       </Alert>
                     )}
                   </div>
@@ -376,30 +380,32 @@ const ProgressTracker: React.FC = () => {
 
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Ruler className="h-4 w-4" />
-                      <h3 className="font-medium text-sm">Body Measurements</h3>
+                      <Ruler className="h-4 w-4 text-primary" />
+                      <h3 className="font-medium text-sm">Body Measurements (cm/in)</h3>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <Label htmlFor="chest" className="text-xs">Chest</Label>
+                        <Label htmlFor="chest" className="text-sm">
+                          Chest
+                        </Label>
                         <Input
                           id="chest"
                           type="number"
                           min="0"
                           step="0.1"
-                          value={measurements.chest || ''}
+                          value={measurements.chest || ""}
                           onChange={(e) => {
-                            setMeasurements({ ...measurements, chest: parseFloat(e.target.value) || undefined });
+                            setMeasurements({ ...measurements, chest: Number.parseFloat(e.target.value) || undefined })
                             if (errors.chest) {
-                              setErrors(prev => {
-                                const newErrors = { ...prev };
-                                delete newErrors.chest;
-                                return newErrors;
-                              });
+                              setErrors((prev) => {
+                                const newErrors = { ...prev }
+                                delete newErrors.chest
+                                return newErrors
+                              })
                             }
                           }}
-                          placeholder="cm/in"
-                          className={`h-8 text-sm ${errors.chest ? 'border-red-500' : ''}`}
+                          placeholder="Chest measurement"
+                          className={`h-9 text-sm ${errors.chest ? "border-red-500 focus:border-red-500" : "focus:border-primary"}`}
                         />
                         {errors.chest && (
                           <Alert variant="destructive" className="py-1 px-2 mt-1">
@@ -408,25 +414,27 @@ const ProgressTracker: React.FC = () => {
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="waist" className="text-xs">Waist</Label>
+                        <Label htmlFor="waist" className="text-sm">
+                          Waist
+                        </Label>
                         <Input
                           id="waist"
                           type="number"
                           min="0"
                           step="0.1"
-                          value={measurements.waist || ''}
+                          value={measurements.waist || ""}
                           onChange={(e) => {
-                            setMeasurements({ ...measurements, waist: parseFloat(e.target.value) || undefined });
+                            setMeasurements({ ...measurements, waist: Number.parseFloat(e.target.value) || undefined })
                             if (errors.waist) {
-                              setErrors(prev => {
-                                const newErrors = { ...prev };
-                                delete newErrors.waist;
-                                return newErrors;
-                              });
+                              setErrors((prev) => {
+                                const newErrors = { ...prev }
+                                delete newErrors.waist
+                                return newErrors
+                              })
                             }
                           }}
-                          placeholder="cm/in"
-                          className={`h-8 text-sm ${errors.waist ? 'border-red-500' : ''}`}
+                          placeholder="Waist measurement"
+                          className={`h-9 text-sm ${errors.waist ? "border-red-500 focus:border-red-500" : "focus:border-primary"}`}
                         />
                         {errors.waist && (
                           <Alert variant="destructive" className="py-1 px-2 mt-1">
@@ -435,25 +443,27 @@ const ProgressTracker: React.FC = () => {
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="hips" className="text-xs">Hips</Label>
+                        <Label htmlFor="hips" className="text-sm">
+                          Hips
+                        </Label>
                         <Input
                           id="hips"
                           type="number"
                           min="0"
                           step="0.1"
-                          value={measurements.hips || ''}
+                          value={measurements.hips || ""}
                           onChange={(e) => {
-                            setMeasurements({ ...measurements, hips: parseFloat(e.target.value) || undefined });
+                            setMeasurements({ ...measurements, hips: Number.parseFloat(e.target.value) || undefined })
                             if (errors.hips) {
-                              setErrors(prev => {
-                                const newErrors = { ...prev };
-                                delete newErrors.hips;
-                                return newErrors;
-                              });
+                              setErrors((prev) => {
+                                const newErrors = { ...prev }
+                                delete newErrors.hips
+                                return newErrors
+                              })
                             }
                           }}
-                          placeholder="cm/in"
-                          className={`h-8 text-sm ${errors.hips ? 'border-red-500' : ''}`}
+                          placeholder="Hips measurement"
+                          className={`h-9 text-sm ${errors.hips ? "border-red-500 focus:border-red-500" : "focus:border-primary"}`}
                         />
                         {errors.hips && (
                           <Alert variant="destructive" className="py-1 px-2 mt-1">
@@ -462,25 +472,27 @@ const ProgressTracker: React.FC = () => {
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="arms" className="text-xs">Arms</Label>
+                        <Label htmlFor="arms" className="text-sm">
+                          Arms
+                        </Label>
                         <Input
                           id="arms"
                           type="number"
                           min="0"
                           step="0.1"
-                          value={measurements.arms || ''}
+                          value={measurements.arms || ""}
                           onChange={(e) => {
-                            setMeasurements({ ...measurements, arms: parseFloat(e.target.value) || undefined });
+                            setMeasurements({ ...measurements, arms: Number.parseFloat(e.target.value) || undefined })
                             if (errors.arms) {
-                              setErrors(prev => {
-                                const newErrors = { ...prev };
-                                delete newErrors.arms;
-                                return newErrors;
-                              });
+                              setErrors((prev) => {
+                                const newErrors = { ...prev }
+                                delete newErrors.arms
+                                return newErrors
+                              })
                             }
                           }}
-                          placeholder="cm/in"
-                          className={`h-8 text-sm ${errors.arms ? 'border-red-500' : ''}`}
+                          placeholder="Arms measurement"
+                          className={`h-9 text-sm ${errors.arms ? "border-red-500 focus:border-red-500" : "focus:border-primary"}`}
                         />
                         {errors.arms && (
                           <Alert variant="destructive" className="py-1 px-2 mt-1">
@@ -488,26 +500,28 @@ const ProgressTracker: React.FC = () => {
                           </Alert>
                         )}
                       </div>
-                      <div>
-                        <Label htmlFor="thighs" className="text-xs">Thighs</Label>
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="thighs" className="text-sm">
+                          Thighs
+                        </Label>
                         <Input
                           id="thighs"
                           type="number"
                           min="0"
                           step="0.1"
-                          value={measurements.thighs || ''}
+                          value={measurements.thighs || ""}
                           onChange={(e) => {
-                            setMeasurements({ ...measurements, thighs: parseFloat(e.target.value) || undefined });
+                            setMeasurements({ ...measurements, thighs: Number.parseFloat(e.target.value) || undefined })
                             if (errors.thighs) {
-                              setErrors(prev => {
-                                const newErrors = { ...prev };
-                                delete newErrors.thighs;
-                                return newErrors;
-                              });
+                              setErrors((prev) => {
+                                const newErrors = { ...prev }
+                                delete newErrors.thighs
+                                return newErrors
+                              })
                             }
                           }}
-                          placeholder="cm/in"
-                          className={`h-8 text-sm ${errors.thighs ? 'border-red-500' : ''}`}
+                          placeholder="Thighs measurement"
+                          className={`h-9 text-sm ${errors.thighs ? "border-red-500 focus:border-red-500" : "focus:border-primary"}`}
                         />
                         {errors.thighs && (
                           <Alert variant="destructive" className="py-1 px-2 mt-1">
@@ -522,30 +536,35 @@ const ProgressTracker: React.FC = () => {
 
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Dumbbell className="h-4 w-4" />
-                      <h3 className="font-medium text-sm">Performance</h3>
+                      <Dumbbell className="h-4 w-4 text-primary" />
+                      <h3 className="font-medium text-sm">Performance Metrics</h3>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <Label htmlFor="benchPress" className="text-xs">Bench Press</Label>
+                        <Label htmlFor="benchPress" className="text-sm">
+                          Bench Press (kg/lbs)
+                        </Label>
                         <Input
                           id="benchPress"
                           type="number"
                           min="0"
                           step="0.5"
-                          value={performance.benchPress || ''}
+                          value={performance.benchPress || ""}
                           onChange={(e) => {
-                            setPerformance({ ...performance, benchPress: parseFloat(e.target.value) || undefined });
+                            setPerformance({
+                              ...performance,
+                              benchPress: Number.parseFloat(e.target.value) || undefined,
+                            })
                             if (errors.benchPress) {
-                              setErrors(prev => {
-                                const newErrors = { ...prev };
-                                delete newErrors.benchPress;
-                                return newErrors;
-                              });
+                              setErrors((prev) => {
+                                const newErrors = { ...prev }
+                                delete newErrors.benchPress
+                                return newErrors
+                              })
                             }
                           }}
-                          placeholder="kg/lbs"
-                          className={`h-8 text-sm ${errors.benchPress ? 'border-red-500' : ''}`}
+                          placeholder="Max bench press"
+                          className={`h-9 text-sm ${errors.benchPress ? "border-red-500 focus:border-red-500" : "focus:border-primary"}`}
                         />
                         {errors.benchPress && (
                           <Alert variant="destructive" className="py-1 px-2 mt-1">
@@ -554,25 +573,27 @@ const ProgressTracker: React.FC = () => {
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="squat" className="text-xs">Squat</Label>
+                        <Label htmlFor="squat" className="text-sm">
+                          Squat (kg/lbs)
+                        </Label>
                         <Input
                           id="squat"
                           type="number"
                           min="0"
                           step="0.5"
-                          value={performance.squat || ''}
+                          value={performance.squat || ""}
                           onChange={(e) => {
-                            setPerformance({ ...performance, squat: parseFloat(e.target.value) || undefined });
+                            setPerformance({ ...performance, squat: Number.parseFloat(e.target.value) || undefined })
                             if (errors.squat) {
-                              setErrors(prev => {
-                                const newErrors = { ...prev };
-                                delete newErrors.squat;
-                                return newErrors;
-                              });
+                              setErrors((prev) => {
+                                const newErrors = { ...prev }
+                                delete newErrors.squat
+                                return newErrors
+                              })
                             }
                           }}
-                          placeholder="kg/lbs"
-                          className={`h-8 text-sm ${errors.squat ? 'border-red-500' : ''}`}
+                          placeholder="Max squat"
+                          className={`h-9 text-sm ${errors.squat ? "border-red-500 focus:border-red-500" : "focus:border-primary"}`}
                         />
                         {errors.squat && (
                           <Alert variant="destructive" className="py-1 px-2 mt-1">
@@ -581,25 +602,27 @@ const ProgressTracker: React.FC = () => {
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="deadlift" className="text-xs">Deadlift</Label>
+                        <Label htmlFor="deadlift" className="text-sm">
+                          Deadlift (kg/lbs)
+                        </Label>
                         <Input
                           id="deadlift"
                           type="number"
                           min="0"
                           step="0.5"
-                          value={performance.deadlift || ''}
+                          value={performance.deadlift || ""}
                           onChange={(e) => {
-                            setPerformance({ ...performance, deadlift: parseFloat(e.target.value) || undefined });
+                            setPerformance({ ...performance, deadlift: Number.parseFloat(e.target.value) || undefined })
                             if (errors.deadlift) {
-                              setErrors(prev => {
-                                const newErrors = { ...prev };
-                                delete newErrors.deadlift;
-                                return newErrors;
-                              });
+                              setErrors((prev) => {
+                                const newErrors = { ...prev }
+                                delete newErrors.deadlift
+                                return newErrors
+                              })
                             }
                           }}
-                          placeholder="kg/lbs"
-                          className={`h-8 text-sm ${errors.deadlift ? 'border-red-500' : ''}`}
+                          placeholder="Max deadlift"
+                          className={`h-9 text-sm ${errors.deadlift ? "border-red-500 focus:border-red-500" : "focus:border-primary"}`}
                         />
                         {errors.deadlift && (
                           <Alert variant="destructive" className="py-1 px-2 mt-1">
@@ -608,25 +631,27 @@ const ProgressTracker: React.FC = () => {
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="run5k" className="text-xs">5K Time</Label>
+                        <Label htmlFor="run5k" className="text-sm">
+                          5K Time (minutes)
+                        </Label>
                         <Input
                           id="run5k"
                           type="number"
                           min="0"
                           step="0.1"
-                          value={performance.run5k || ''}
+                          value={performance.run5k || ""}
                           onChange={(e) => {
-                            setPerformance({ ...performance, run5k: parseFloat(e.target.value) || undefined });
+                            setPerformance({ ...performance, run5k: Number.parseFloat(e.target.value) || undefined })
                             if (errors.run5k) {
-                              setErrors(prev => {
-                                const newErrors = { ...prev };
-                                delete newErrors.run5k;
-                                return newErrors;
-                              });
+                              setErrors((prev) => {
+                                const newErrors = { ...prev }
+                                delete newErrors.run5k
+                                return newErrors
+                              })
                             }
                           }}
-                          placeholder="minutes"
-                          className={`h-8 text-sm ${errors.run5k ? 'border-red-500' : ''}`}
+                          placeholder="5K run time"
+                          className={`h-9 text-sm ${errors.run5k ? "border-red-500 focus:border-red-500" : "focus:border-primary"}`}
                         />
                         {errors.run5k && (
                           <Alert variant="destructive" className="py-1 px-2 mt-1">
@@ -640,107 +665,125 @@ const ProgressTracker: React.FC = () => {
                   <Separator />
 
                   <div className="space-y-2">
-                    <Label htmlFor="notes">Notes</Label>
+                    <Label htmlFor="notes" className="text-sm font-medium">
+                      Notes
+                    </Label>
                     <Textarea
                       id="notes"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Progress notes..."
-                      className="h-20 resize-none text-sm"
+                      className="h-24 resize-none text-base"
                     />
                   </div>
 
-                  <Button type="submit" className="w-full h-9">
+                  <Button type="submit" className="w-full h-11 text-base font-medium">
                     <Save className="h-4 w-4 mr-2" /> Save Entry
                   </Button>
                 </form>
               </CardContent>
             </Card>
 
-            <Card className="lg:col-span-2">
-              <CardHeader className="pb-3">
-                <CardTitle>Recent Entries</CardTitle>
-                <CardDescription>Your progress history</CardDescription>
+            <Card className="xl:col-span-2 order-1 xl:order-2">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Recent Entries</CardTitle>
+                <CardDescription className="text-sm">Your progress history</CardDescription>
               </CardHeader>
               <CardContent>
                 {progressEntries.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <TrendingUp className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="font-medium text-lg mb-1">No entries yet</h3>
-                    <p className="text-muted-foreground text-sm">Start by recording your first progress entry</p>
+                    <h3 className="font-medium text-lg mb-2">No entries yet</h3>
+                    <p className="text-muted-foreground text-sm max-w-sm">
+                      Start by recording your first progress entry using the form
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {progressEntries.map((entry) => (
-                      <div key={entry._id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-base">
-                              {new Date(entry.date || entry.createdAt || '').toLocaleDateString()}
-                            </h3>
-                            <Badge variant="secondary" className="text-xs py-0.5 px-1.5">
-                              {Object.keys(entry).filter(key =>
-                                entry[key as keyof ProgressEntry] !== undefined &&
-                                entry[key as keyof ProgressEntry] !== null &&
-                                key !== '_id' &&
-                                key !== 'date' &&
-                                key !== 'createdAt' &&
-                                key !== 'updatedAt' &&
-                                key !== 'notes'
-                              ).length} metrics
-                            </Badge>
+                      <Card
+                        key={entry._id}
+                        className="p-4 hover:bg-muted/30 transition-colors border-l-4 border-l-purple-500/20"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                                <h3 className="font-semibold text-base">
+                                  {new Date(entry.date || entry.createdAt || "").toLocaleDateString()}
+                                </h3>
+                                <Badge variant="secondary" className="text-xs py-1 px-2 w-fit">
+                                  {
+                                    Object.keys(entry).filter(
+                                      (key) =>
+                                        entry[key as keyof ProgressEntry] !== undefined &&
+                                        entry[key as keyof ProgressEntry] !== null &&
+                                        key !== "_id" &&
+                                        key !== "date" &&
+                                        key !== "createdAt" &&
+                                        key !== "updatedAt" &&
+                                        key !== "notes",
+                                    ).length
+                                  }{" "}
+                                  metrics
+                                </Badge>
+                              </div>
+
+                              <div className="text-xs text-muted-foreground">
+                                {new Date(entry.createdAt || "").toLocaleDateString()}
+                              </div>
+                            </div>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => entry._id && handleDeleteProgressEntry(entry._id)}
+                              className="h-8 w-8 p-0 shrink-0"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => entry._id && handleDeleteProgressEntry(entry._id)}
-                            className="h-7 w-7 p-0"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-3">
-                          {entry.weight && (
-                            <div className="bg-muted/50 rounded p-2 text-center">
-                              <p className="text-xs text-muted-foreground">Weight</p>
-                              <p className="font-bold text-sm">{entry.weight}</p>
-                            </div>
-                          )}
-                          {entry.measurements?.chest && (
-                            <div className="bg-muted/50 rounded p-2 text-center">
-                              <p className="text-xs text-muted-foreground">Chest</p>
-                              <p className="font-bold text-sm">{entry.measurements.chest}</p>
-                            </div>
-                          )}
-                          {entry.measurements?.waist && (
-                            <div className="bg-muted/50 rounded p-2 text-center">
-                              <p className="text-xs text-muted-foreground">Waist</p>
-                              <p className="font-bold text-sm">{entry.measurements.waist}</p>
-                            </div>
-                          )}
-                          {entry.performance?.benchPress && (
-                            <div className="bg-muted/50 rounded p-2 text-center">
-                              <p className="text-xs text-muted-foreground">Bench</p>
-                              <p className="font-bold text-sm">{entry.performance.benchPress}</p>
-                            </div>
-                          )}
-                          {entry.performance?.squat && (
-                            <div className="bg-muted/50 rounded p-2 text-center">
-                              <p className="text-xs text-muted-foreground">Squat</p>
-                              <p className="font-bold text-sm">{entry.performance.squat}</p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                            {entry.weight && (
+                              <div className="bg-muted/50 rounded-lg p-3 text-center">
+                                <p className="text-xs text-muted-foreground font-medium">Weight</p>
+                                <p className="text-sm font-bold">{entry.weight}</p>
+                              </div>
+                            )}
+                            {entry.measurements?.chest && (
+                              <div className="bg-muted/50 rounded-lg p-3 text-center">
+                                <p className="text-xs text-muted-foreground font-medium">Chest</p>
+                                <p className="text-sm font-bold">{entry.measurements.chest}</p>
+                              </div>
+                            )}
+                            {entry.measurements?.waist && (
+                              <div className="bg-muted/50 rounded-lg p-3 text-center">
+                                <p className="text-xs text-muted-foreground font-medium">Waist</p>
+                                <p className="text-sm font-bold">{entry.measurements.waist}</p>
+                              </div>
+                            )}
+                            {entry.performance?.benchPress && (
+                              <div className="bg-muted/50 rounded-lg p-3 text-center">
+                                <p className="text-xs text-muted-foreground font-medium">Bench</p>
+                                <p className="text-sm font-bold">{entry.performance.benchPress}</p>
+                              </div>
+                            )}
+                            {entry.performance?.squat && (
+                              <div className="bg-muted/50 rounded-lg p-3 text-center">
+                                <p className="text-xs text-muted-foreground font-medium">Squat</p>
+                                <p className="text-sm font-bold">{entry.performance.squat}</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {entry.notes && (
+                            <div className="bg-muted/50 p-3 rounded-md">
+                              <p className="text-sm text-muted-foreground">{entry.notes}</p>
                             </div>
                           )}
                         </div>
-
-                        {entry.notes && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">{entry.notes}</p>
-                        )}
-
-                        <div className="mt-3 text-xs text-muted-foreground">
-                          {new Date(entry.createdAt || '').toLocaleDateString()}
-                        </div>
-                      </div>
+                      </Card>
                     ))}
                   </div>
                 )}
@@ -751,73 +794,58 @@ const ProgressTracker: React.FC = () => {
 
         <TabsContent value="view" className="space-y-6">
           {/* Enhanced responsive chart grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
             {/* Weight Progress - Using Area Chart */}
             <Card className="xl:col-span-1">
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Scale className="h-5 w-5" />
+                  <Scale className="h-5 w-5 text-primary" />
                   Weight Progress
                 </CardTitle>
-                <CardDescription>Track your weight changes over time</CardDescription>
+                <CardDescription className="text-sm">Track your weight changes over time</CardDescription>
               </CardHeader>
               <CardContent>
                 {weightData.length > 0 ? (
-                  <ChartContainer config={weightChartConfig} className="h-[300px] w-full">
-                    <AreaChart
-                      data={weightData}
-                      margin={{
-                        top: 10,
-                        left: 12,
-                        right: 12,
-                        bottom: 10,
-                      }}
-                    >
-                      <defs>
-                        <linearGradient id="fillWeight" x1="0" y1="0" x2="0" y2="1">
-                          <stop
-                            offset="5%"
-                            stopColor="var(--color-primary)"
-                            stopOpacity={0.8}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="var(--color-primary)"
-                            stopOpacity={0.1}
-                          />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="date"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        fontSize={12}
-                      />
-                      <YAxis
-                        domain={['dataMin - 2', 'dataMax + 2']}
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        fontSize={12}
-                      />
-                      <ChartTooltip
-                        cursor={{ strokeDasharray: "3 3" }}
-                        content={<ChartTooltipContent hideLabel />}
-                      />
-                      <Area
-                        dataKey="weight"
-                        type="monotone"
-                        fill="url(#fillWeight)"
-                        fillOpacity={0.4}
-                        stroke="var(--color-primary)"
-                        strokeWidth={2}
-                      />
-                    </AreaChart>
+                  <ChartContainer config={weightChartConfig} className="h-[250px] sm:h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={weightData}
+                        margin={{
+                          top: 10,
+                          left: 12,
+                          right: 12,
+                          bottom: 10,
+                        }}
+                      >
+                        <defs>
+                          <linearGradient id="fillWeight" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0.1} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
+                        <YAxis
+                          domain={["dataMin - 2", "dataMax + 2"]}
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          fontSize={12}
+                        />
+                        <ChartTooltip cursor={{ strokeDasharray: "3 3" }} content={<ChartTooltipContent hideLabel />} />
+                        <Area
+                          dataKey="weight"
+                          type="monotone"
+                          fill="url(#fillWeight)"
+                          fillOpacity={0.4}
+                          stroke="var(--color-primary)"
+                          strokeWidth={2}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 ) : (
-                  <div className="h-[300px] flex items-center justify-center text-muted-foreground text-sm">
+                  <div className="h-[250px] sm:h-[300px] flex items-center justify-center text-muted-foreground text-sm">
                     No weight data recorded yet.
                   </div>
                 )}
@@ -826,65 +854,61 @@ const ProgressTracker: React.FC = () => {
 
             {/* Body Measurements - Using Multi-line Chart */}
             <Card className="xl:col-span-1">
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Ruler className="h-5 w-5" />
+                  <Ruler className="h-5 w-5 text-primary" />
                   Body Measurements
                 </CardTitle>
-                <CardDescription>Track your body measurements over time</CardDescription>
+                <CardDescription className="text-sm">Track your body measurements over time</CardDescription>
               </CardHeader>
               <CardContent>
                 {measurementsData.length > 0 ? (
-                  <ChartContainer config={measurementsChartConfig} className="h-[300px] w-full">
-                    <LineChart
-                      data={measurementsData}
-                      margin={{
-                        top: 10,
-                        left: 12,
-                        right: 12,
-                        bottom: 10,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="date"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        fontSize={12}
-                      />
-                      <YAxis
-                        domain={['dataMin - 2', 'dataMax + 2']}
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        fontSize={12}
-                      />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <ChartLegend content={<ChartLegendContent />} />
-                      {Object.entries(measurementsChartConfig).map(([key, config]) => (
-                        <Line
-                          key={key}
-                          dataKey={key}
-                          type="monotone"
-                          stroke={config.color}
-                          strokeWidth={2}
-                          dot={{
-                            fill: config.color,
-                            strokeWidth: 2,
-                            r: 3,
-                          }}
-                          activeDot={{
-                            r: 5,
-                            stroke: config.color,
-                            strokeWidth: 2,
-                          }}
+                  <ChartContainer config={measurementsChartConfig} className="h-[250px] sm:h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={measurementsData}
+                        margin={{
+                          top: 10,
+                          left: 12,
+                          right: 12,
+                          bottom: 10,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
+                        <YAxis
+                          domain={["dataMin - 2", "dataMax + 2"]}
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          fontSize={12}
                         />
-                      ))}
-                    </LineChart>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <ChartLegend content={<ChartLegendContent />} />
+                        {Object.entries(measurementsChartConfig).map(([key, config]) => (
+                          <Line
+                            key={key}
+                            dataKey={key}
+                            type="monotone"
+                            stroke={config.color}
+                            strokeWidth={2}
+                            dot={{
+                              fill: config.color,
+                              strokeWidth: 2,
+                              r: 3,
+                            }}
+                            activeDot={{
+                              r: 5,
+                              stroke: config.color,
+                              strokeWidth: 2,
+                            }}
+                          />
+                        ))}
+                      </LineChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 ) : (
-                  <div className="h-[300px] flex items-center justify-center text-muted-foreground text-sm">
+                  <div className="h-[250px] sm:h-[300px] flex items-center justify-center text-muted-foreground text-sm">
                     No measurements data recorded yet.
                   </div>
                 )}
@@ -893,54 +917,45 @@ const ProgressTracker: React.FC = () => {
 
             {/* Performance Metrics - Using Bar Chart */}
             <Card className="xl:col-span-2">
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Dumbbell className="h-5 w-5" />
+                  <Dumbbell className="h-5 w-5 text-primary" />
                   Performance Metrics
                 </CardTitle>
-                <CardDescription>Track your strength and cardio performance</CardDescription>
+                <CardDescription className="text-sm">Track your strength and cardio performance</CardDescription>
               </CardHeader>
               <CardContent>
                 {performanceData.length > 0 ? (
-                  <ChartContainer config={performanceChartConfig} className="h-[350px] w-full">
-                    <BarChart
-                      data={performanceData}
-                      margin={{
-                        top: 10,
-                        left: 12,
-                        right: 12,
-                        bottom: 10,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="date"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        fontSize={12}
-                      />
-                      <YAxis
-                        domain={['dataMin - 10', 'dataMax + 10']}
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        fontSize={12}
-                      />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <ChartLegend content={<ChartLegendContent />} />
-                      {Object.entries(performanceChartConfig).map(([key, config]) => (
-                        <Bar
-                          key={key}
-                          dataKey={key}
-                          fill={config.color}
-                          radius={[2, 2, 0, 0]}
+                  <ChartContainer config={performanceChartConfig} className="h-[300px] sm:h-[350px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={performanceData}
+                        margin={{
+                          top: 10,
+                          left: 12,
+                          right: 12,
+                          bottom: 10,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
+                        <YAxis
+                          domain={["dataMin - 10", "dataMax + 10"]}
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          fontSize={12}
                         />
-                      ))}
-                    </BarChart>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <ChartLegend content={<ChartLegendContent />} />
+                        {Object.entries(performanceChartConfig).map(([key, config]) => (
+                          <Bar key={key} dataKey={key} fill={config.color} radius={[2, 2, 0, 0]} />
+                        ))}
+                      </BarChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 ) : (
-                  <div className="h-[350px] flex items-center justify-center text-muted-foreground text-sm">
+                  <div className="h-[300px] sm:h-[350px] flex items-center justify-center text-muted-foreground text-sm">
                     No performance data recorded yet.
                   </div>
                 )}
@@ -949,16 +964,16 @@ const ProgressTracker: React.FC = () => {
           </div>
 
           {/* Additional Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Total Entries */}
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Total Entries</p>
-                    <p className="text-2xl font-bold">{progressEntries.length}</p>
+                    <p className="text-xl sm:text-2xl font-bold">{progressEntries.length}</p>
                   </div>
-                  <TrendingUp className="h-8 w-8 text-muted-foreground" />
+                  <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>
@@ -970,9 +985,9 @@ const ProgressTracker: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Latest Weight</p>
-                      <p className="text-2xl font-bold">{weightData[weightData.length - 1]?.weight}</p>
+                      <p className="text-xl sm:text-2xl font-bold">{weightData[weightData.length - 1]?.weight}</p>
                     </div>
-                    <Scale className="h-8 w-8 text-muted-foreground" />
+                    <Scale className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
                   </div>
                 </CardContent>
               </Card>
@@ -985,11 +1000,11 @@ const ProgressTracker: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Weight Change</p>
-                      <p className="text-2xl font-bold">
+                      <p className="text-xl sm:text-2xl font-bold">
                         {((weightData[weightData.length - 1]?.weight || 0) - (weightData[0]?.weight || 0)).toFixed(1)}
                       </p>
                     </div>
-                    <TrendingUp className="h-8 w-8 text-muted-foreground" />
+                    <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
                   </div>
                 </CardContent>
               </Card>
@@ -1002,15 +1017,15 @@ const ProgressTracker: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Days Tracked</p>
-                      <p className="text-2xl font-bold">
+                      <p className="text-xl sm:text-2xl font-bold">
                         {Math.ceil(
-                          (new Date(progressEntries[0]?.createdAt || '').getTime() -
-                            new Date(progressEntries[progressEntries.length - 1]?.createdAt || '').getTime())
-                          / (1000 * 60 * 60 * 24)
+                          (new Date(progressEntries[0]?.createdAt || "").getTime() -
+                            new Date(progressEntries[progressEntries.length - 1]?.createdAt || "").getTime()) /
+                          (1000 * 60 * 60 * 24),
                         )}
                       </p>
                     </div>
-                    <Save className="h-8 w-8 text-muted-foreground" />
+                    <Save className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
                   </div>
                 </CardContent>
               </Card>
@@ -1019,7 +1034,7 @@ const ProgressTracker: React.FC = () => {
         </TabsContent>
       </Tabs>
     </div>
-  );
-};
+  )
+}
 
-export default ProgressTracker;
+export default ProgressTracker
