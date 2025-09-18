@@ -24,7 +24,7 @@ export default function ForgetPassword() {
     const [success, setSuccess] = useState("")
 
     // API base URL (adjust if needed)
-    const API = `${import.meta.env.VITE_API_URL}/api/auth`
+    const API = `${import.meta.env.VITE_SERVER_URL}/api/auth`
 
     const validateEmail = (email: string) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -353,7 +353,7 @@ export default function ForgetPassword() {
                                 <Separator />
 
                                 <div className="space-y-3">
-                                    <a href="/auth/sign-in" className="block">
+                                    <a href="/login" className="block">
                                         <Button size="lg" className="w-full h-11 text-base font-medium">
                                             <ArrowLeft className="w-4 h-4 mr-2" />
                                             Back to Login

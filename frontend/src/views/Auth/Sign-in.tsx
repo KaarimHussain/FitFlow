@@ -62,7 +62,7 @@ export default function SignIn() {
         return isValid
     }
 
-    const { login } = useAuth();
+    const { login, user } = useAuth();
 
     const handleSubmit = async (e: any) => {
         e.preventDefault()
@@ -73,7 +73,23 @@ export default function SignIn() {
             try {
                 await login(formData.email, formData.password);
                 notify.success("Logged in successfully!");
-                navigate("/dashboard");
+                
+                // Get the user data from localStorage after login
+                const userData = localStorage.getItem('user');
+                if (userData) {
+                    const user = JSON.parse(userData);
+                    console.log('User data after login:', user);
+                    
+                    if (user.role === 'admin') {
+                        navigate("/admin");
+                    } else {
+                        navigate("/dashboard");
+                    }
+                } else {
+                    // Fallback navigation
+                    navigate("/dashboard");
+                }
+                
             } catch (error) {
                 notify.error("Invalid credentials. Please try again.");
             } finally {

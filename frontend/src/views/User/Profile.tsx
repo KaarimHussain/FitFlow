@@ -5,11 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -21,42 +18,18 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { User, Lock, Shield, Smartphone, Trash2, Camera, Save, Eye, EyeOff } from "lucide-react"
-import api from "@/services/api"
 import { useNotificationService } from "@/context/notification-context"
-
-interface UserData {
-    id: string
-    username: string
-    email: string
-    role: string
-    isVerified: boolean
-    createdAt: string
-    bio?: string
-    fitnessGoals?: string
-    dateOfBirth?: string
-    profilePicture?: string
-}
-
-interface SecuritySettings {
-    twoFactorEnabled: boolean
-    profilePublic: boolean
-    dataSharing: boolean
-}
+import { useAuth } from "@/context/AuthContext"
+import { User, Lock, Trash2, Save, Eye, EyeOff } from "lucide-react"
+import profileService, { type UserProfile, type ProfileUpdateData } from "@/services/profileService"
 
 export default function Profile() {
+    const notifications = useNotificationService()
+    const { refreshUser } = useAuth()
 
-    // Notification Service
-    const toast = useNotificationService()
-
-    const [userData, setUserData] = useState<UserData | null>(null)
+    const [userData, setUserData] = useState<UserProfile | null>(null)
     const [loading, setLoading] = useState(true)
     const [editing, setEditing] = useState(false)
-    const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({
-        twoFactorEnabled: false,
-        profilePublic: true,
-        dataSharing: false,
-    })
     const [passwordData, setPasswordData] = useState({
         currentPassword: "",
         newPassword: "",
@@ -69,10 +42,6 @@ export default function Profile() {
     })
     const [formData, setFormData] = useState({
         username: "",
-        email: "",
-        bio: "",
-        fitnessGoals: "",
-        dateOfBirth: "",
     })
 
     useEffect(() => {
@@ -81,21 +50,14 @@ export default function Profile() {
 
     const fetchUserData = async () => {
         try {
-            const response = await api.get("/auth/me")
-            if (response.data.success) {
-                const user = response.data.user
-                setUserData(user)
-                setFormData({
-                    username: user.username || "",
-                    email: user.email || "",
-                    bio: user.bio || "",
-                    fitnessGoals: user.fitnessGoals || "",
-                    dateOfBirth: user.dateOfBirth || "",
-                })
-            }
+            const user = await profileService.getProfile()
+            setUserData(user)
+            setFormData({
+                username: user.username || "",
+            })
         } catch (error) {
             console.error("Error fetching user data:", error)
-            toast.error("Failed to load profile data")
+            notifications.error("Failed to load profile data")
         } finally {
             setLoading(false)
         }
@@ -104,16 +66,14 @@ export default function Profile() {
     const handleSaveProfile = async () => {
         try {
             setLoading(true)
-            // In a real app, you'd have an update profile endpoint
-            // For now, we'll simulate the update
-            const updatedUser = { ...userData, ...formData }
-            setUserData(updatedUser as UserData)
+            const updatedUser = await profileService.updateProfile(formData as ProfileUpdateData)
+            setUserData(updatedUser)
             setEditing(false)
 
-            toast.success("Profile updated successfully",)
-        } catch (error) {
+            notifications.success("Profile updated successfully")
+        } catch (error: any) {
             console.error("Error updating profile:", error)
-            toast.error("Failed to update profile")
+            notifications.error(error.message || "Failed to update profile")
         } finally {
             setLoading(false)
         }
@@ -121,51 +81,78 @@ export default function Profile() {
 
     const handlePasswordChange = async () => {
         if (passwordData.newPassword !== passwordData.confirmPassword) {
-            toast.error("New passwords don't match")
+            notifications.error("New passwords don't match")
             return
         }
 
         if (passwordData.newPassword.length < 6) {
-            toast({
-                title: "Error",
-                description: "Password must be at least 6 characters long",
-                variant: "destructive",
-            })
+            notifications.error("Password must be at least 6 characters long")
             return
         }
 
         try {
-            // In a real app, you'd have a change password endpoint
-            toast({
-                title: "Success",
-                description: "Password changed successfully",
+            await profileService.changePassword({
+                currentPassword: passwordData.currentPassword,
+                newPassword: passwordData.newPassword,
             })
+
+            notifications.success("Password changed successfully")
             setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" })
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error changing password:", error)
-            toast({
-                title: "Error",
-                description: "Failed to change password",
-                variant: "destructive",
+            notifications.error(error.response.data.message || "Failed to change password")
+        }
+    }
+
+    const handleMakeAdmin = async () => {
+        try {
+            setLoading(true)
+            const response = await fetch('http://localhost:5000/api/auth/make-admin', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json',
+                },
             })
+
+            const data = await response.json()
+
+            if (data.success) {
+                // Update local user data to reflect new role
+                setUserData(prev => prev ? { ...prev, role: 'admin' } : null)
+                
+                // Refresh the user data in AuthContext to update global state
+                await refreshUser()
+                
+                notifications.success("You are now an admin! You can access the admin dashboard at /admin")
+            } else {
+                notifications.error(data.message || "Failed to upgrade to admin")
+            }
+        } catch (error: any) {
+            console.error("Error making admin:", error)
+            notifications.error("Failed to upgrade to admin")
+        } finally {
+            setLoading(false)
         }
     }
 
     const handleDeleteAccount = async () => {
         try {
-            // In a real app, you'd have a delete account endpoint
-            toast({
+            await profileService.deleteAccount()
+
+            notifications.success("Your account has been permanently deleted", {
                 title: "Account Deleted",
-                description: "Your account has been permanently deleted",
+                duration: 3000,
             })
-            // Redirect to login or home page
-        } catch (error) {
+
+            // Clear local storage and redirect
+            localStorage.removeItem("token")
+            setTimeout(() => {
+                window.location.href = "/login"
+            }, 3000)
+        } catch (error: any) {
             console.error("Error deleting account:", error)
-            toast({
-                title: "Error",
-                description: "Failed to delete account",
-                variant: "destructive",
-            })
+            notifications.error(error.message || "Failed to delete account")
         }
     }
 
@@ -179,21 +166,17 @@ export default function Profile() {
 
     return (
         <div className="min-h-screen bg-background">
-            <div className="container mx-auto px-4 py-8 max-w-4xl">
+            <div className="container mx-auto px-4 py-25 max-w-4xl">
                 {/* Header Section */}
                 <Card className="mb-8">
                     <CardContent className="pt-6">
                         <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                             <div className="relative">
                                 <Avatar className="h-24 w-24 md:h-32 md:w-32">
-                                    <AvatarImage src={userData?.profilePicture || "/placeholder.svg"} alt={userData?.username} />
-                                    <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                                    <AvatarFallback className="text-4xl bg-primary text-primary-foreground">
                                         {userData?.username?.charAt(0).toUpperCase()}
                                     </AvatarFallback>
                                 </Avatar>
-                                <Button size="sm" variant="secondary" className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0">
-                                    <Camera className="h-4 w-4" />
-                                </Button>
                             </div>
 
                             <div className="flex-1 text-center md:text-left">
@@ -203,7 +186,9 @@ export default function Profile() {
                                         <Badge variant={userData?.isVerified ? "default" : "secondary"}>
                                             {userData?.isVerified ? "Verified" : "Unverified"}
                                         </Badge>
-                                        <Badge variant="outline">{userData?.role}</Badge>
+                                        <Badge variant="outline" className="capitalize">
+                                            {userData?.role}
+                                        </Badge>
                                     </div>
                                 </div>
                                 <p className="text-muted-foreground mb-4">
@@ -225,7 +210,7 @@ export default function Profile() {
                                 <User className="h-5 w-5" />
                                 Personal Information
                             </CardTitle>
-                            <CardDescription>Manage your personal details and fitness preferences</CardDescription>
+                            <CardDescription>Manage your account details</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
@@ -236,7 +221,10 @@ export default function Profile() {
                                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                                     disabled={!editing}
                                     className="bg-input"
+                                    minLength={3}
+                                    maxLength={30}
                                 />
+                                {editing && <p className="text-xs text-muted-foreground">Username must be 3-30 characters</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -244,54 +232,39 @@ export default function Profile() {
                                 <Input
                                     id="email"
                                     type="email"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    disabled={!editing}
-                                    className="bg-input"
+                                    value={userData?.email || ""}
+                                    disabled={true}
+                                    className="bg-muted text-muted-foreground cursor-not-allowed"
+                                    readOnly
                                 />
+                                <p className="text-xs text-muted-foreground">Email cannot be changed</p>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                                <Label htmlFor="role">Role</Label>
                                 <Input
-                                    id="dateOfBirth"
-                                    type="date"
-                                    value={formData.dateOfBirth}
-                                    onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                                    disabled={!editing}
-                                    className="bg-input"
+                                    id="role"
+                                    value={userData?.role || ""}
+                                    disabled={true}
+                                    className="bg-muted text-muted-foreground cursor-not-allowed capitalize"
+                                    readOnly
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="bio">Bio</Label>
-                                <Textarea
-                                    id="bio"
-                                    placeholder="Tell us about yourself..."
-                                    value={formData.bio}
-                                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                                    disabled={!editing}
-                                    className="bg-input min-h-[80px]"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="fitnessGoals">Fitness Goals</Label>
-                                <Textarea
-                                    id="fitnessGoals"
-                                    placeholder="What are your fitness goals?"
-                                    value={formData.fitnessGoals}
-                                    onChange={(e) => setFormData({ ...formData, fitnessGoals: e.target.value })}
-                                    disabled={!editing}
-                                    className="bg-input min-h-[80px]"
-                                />
+                                <Label htmlFor="verification">Account Status</Label>
+                                <div className="flex items-center gap-2">
+                                    <Badge variant={userData?.isVerified ? "default" : "secondary"}>
+                                        {userData?.isVerified ? "Verified Account" : "Unverified Account"}
+                                    </Badge>
+                                </div>
                             </div>
 
                             {editing && (
                                 <Button
                                     onClick={handleSaveProfile}
-                                    className="w-full bg-secondary hover:bg-secondary/90"
-                                    disabled={loading}
+                                    className="w-full"
+                                    disabled={loading || formData.username.length < 3 || formData.username.length > 30}
                                 >
                                     <Save className="h-4 w-4 mr-2" />
                                     Save Changes
@@ -300,58 +273,8 @@ export default function Profile() {
                         </CardContent>
                     </Card>
 
-                    {/* Security Settings Section */}
+                    {/* Right Column */}
                     <div className="space-y-8">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Shield className="h-5 w-5" />
-                                    Security Settings
-                                </CardTitle>
-                                <CardDescription>Manage your account security and privacy preferences</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label>Two-Factor Authentication</Label>
-                                        <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
-                                    </div>
-                                    <Switch
-                                        checked={securitySettings.twoFactorEnabled}
-                                        onCheckedChange={(checked) =>
-                                            setSecuritySettings({ ...securitySettings, twoFactorEnabled: checked })
-                                        }
-                                    />
-                                </div>
-
-                                <Separator />
-
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label>Public Profile</Label>
-                                        <p className="text-sm text-muted-foreground">Make your profile visible to other users</p>
-                                    </div>
-                                    <Switch
-                                        checked={securitySettings.profilePublic}
-                                        onCheckedChange={(checked) => setSecuritySettings({ ...securitySettings, profilePublic: checked })}
-                                    />
-                                </div>
-
-                                <Separator />
-
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label>Data Sharing</Label>
-                                        <p className="text-sm text-muted-foreground">Share anonymized data for research purposes</p>
-                                    </div>
-                                    <Switch
-                                        checked={securitySettings.dataSharing}
-                                        onCheckedChange={(checked) => setSecuritySettings({ ...securitySettings, dataSharing: checked })}
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-
                         {/* Change Password Section */}
                         <Card>
                             <CardHeader>
@@ -393,6 +316,7 @@ export default function Profile() {
                                             value={passwordData.newPassword}
                                             onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                                             className="bg-input pr-10"
+                                            minLength={6}
                                         />
                                         <Button
                                             type="button"
@@ -404,6 +328,7 @@ export default function Profile() {
                                             {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </Button>
                                     </div>
+                                    <p className="text-xs text-muted-foreground">Password must be at least 6 characters</p>
                                 </div>
 
                                 <div className="space-y-2">
@@ -438,26 +363,42 @@ export default function Profile() {
                             </CardContent>
                         </Card>
 
-                        {/* Account Management Section */}
+                        {/* Admin Access Section */}
+                        {userData?.role !== 'admin' && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <User className="h-5 w-5" />
+                                        Admin Access
+                                    </CardTitle>
+                                    <CardDescription>Upgrade your account to admin (development only)</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        Click the button below to upgrade your account to admin role. This will give you access to the admin dashboard.
+                                    </p>
+                                    <Button
+                                        onClick={handleMakeAdmin}
+                                        className="w-full bg-blue-600 hover:bg-blue-700"
+                                        disabled={loading}
+                                    >
+                                        <User className="h-4 w-4 mr-2" />
+                                        Make Me Admin
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Account Management - Danger Zone Only */}
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <Smartphone className="h-5 w-5" />
+                                    <Trash2 className="h-5 w-5" />
                                     Account Management
                                 </CardTitle>
-                                <CardDescription>Manage your account settings and data</CardDescription>
+                                <CardDescription>Manage your account settings</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="p-4 bg-muted rounded-lg">
-                                    <h4 className="font-medium mb-2">Account Status</h4>
-                                    <p className="text-sm text-muted-foreground mb-2">Your account is active and in good standing.</p>
-                                    <Badge variant="outline" className="text-xs">
-                                        Free Plan
-                                    </Badge>
-                                </div>
-
-                                <Separator />
-
                                 <div className="space-y-4">
                                     <h4 className="font-medium text-destructive">Danger Zone</h4>
                                     <p className="text-sm text-muted-foreground">

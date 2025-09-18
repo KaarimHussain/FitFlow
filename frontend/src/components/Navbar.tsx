@@ -15,6 +15,7 @@ import { ThemeToggle } from "./theme-toggle"
 import { Button } from "./ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Logo from "./Logo"
+import { useAuth } from "@/context/AuthContext"
 
 const navigationItems = [
     {
@@ -36,6 +37,7 @@ const navigationItems = [
         title: "Profile",
         href: "/profile",
         icon: User,
+        isLoggedInOnly: true,
     },
 ]
 
@@ -45,22 +47,25 @@ const MobileMenuSection = React.memo(
     }: {
         onLinkClick: () => void
     }) => {
+        const { user } = useAuth();
         return (
             <div className="space-y-2">
                 {navigationItems.map((item) => {
                     const Icon = item.icon
                     return (
-                        <Link
-                            key={item.title}
-                            to={item.href}
-                            onClick={onLinkClick}
-                            className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-accent rounded-md group"
-                        >
-                            <div className="p-1.5 rounded-md bg-muted group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                                <Icon className="h-4 w-4" />
-                            </div>
-                            <div className="font-medium">{item.title}</div>
-                        </Link>
+                        (item.isLoggedInOnly && !user) ? null : (
+                            <Link
+                                key={item.title}
+                                to={item.href}
+                                onClick={onLinkClick}
+                                className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-accent rounded-md group"
+                            >
+                                <div className="p-1.5 rounded-md bg-muted group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                    <Icon className="h-4 w-4" />
+                                </div>
+                                <div className="font-medium">{item.title}</div>
+                            </Link>
+                        )
                     )
                 })}
             </div>
@@ -70,7 +75,6 @@ const MobileMenuSection = React.memo(
 
 MobileMenuSection.displayName = "MobileMenuSection"
 
-import { useAuth } from "@/context/AuthContext"
 
 export const Navbar = React.memo(() => {
     const { user, logout } = useAuth()
@@ -92,11 +96,13 @@ export const Navbar = React.memo(() => {
                         <NavigationMenu>
                             <NavigationMenuList>
                                 {navigationItems.map((item) => (
-                                    <NavigationMenuItem key={item.title}>
-                                        <NavigationMenuLink asChild className={`${navigationMenuTriggerStyle()} bg-transparent`}>
-                                            <Link to={item.href}>{item.title}</Link>
-                                        </NavigationMenuLink>
-                                    </NavigationMenuItem>
+                                    (!item.isLoggedInOnly || user) && (
+                                        <NavigationMenuItem key={item.title}>
+                                            <NavigationMenuLink asChild className={`${navigationMenuTriggerStyle()} bg-transparent`}>
+                                                <Link to={item.href}>{item.title}</Link>
+                                            </NavigationMenuLink>
+                                        </NavigationMenuItem>
+                                    )
                                 ))}
                             </NavigationMenuList>
                         </NavigationMenu>

@@ -274,33 +274,262 @@ router.post('/verify-otp', async (req, res) => {
     }
 });
 
-// @route   POST /api/auth/reset-password
-// @desc    Reset password using OTP
-// @access  Public
-router.post('/reset-password', async (req, res) => {
+// @route   PUT /api/auth/profile
+// @desc    Update user profile
+// @access  Private
+router.put("/profile", protect, async (req, res) => {
     try {
-        const { email, otp, newPassword } = req.body;
-        if (!email || !otp || !newPassword) {
-            return res.status(400).json({ success: false, message: 'Email, OTP, and new password are required' });
+        const { username, bio, fitnessGoals, dateOfBirth } = req.body
+
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized access",
+            })
         }
-        const user = await User.findOne({ email }).select('+password');
-        if (!user || !user.resetPasswordOTP) {
-            return res.status(400).json({ success: false, message: 'Invalid request' });
+
+        // Find and update user
+        const user = await User.findByIdAndUpdate(
+            req.user.id,
+            {
+                username,
+                bio,
+                fitnessGoals,
+                dateOfBirth,
+            },
+            {
+                new: true,
+                runValidators: true,
+            },
+        )
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            })
         }
-        if (user.resetPasswordOTP !== otp) {
-            return res.status(400).json({ success: false, message: 'Invalid OTP' });
-        }
-        if (user.resetPasswordOTPExpires < new Date()) {
-            return res.status(400).json({ success: false, message: 'OTP expired' });
-        }
-        user.password = newPassword;
-        user.resetPasswordOTP = undefined;
-        user.resetPasswordOTPExpires = undefined;
-        await user.save();
-        res.status(200).json({ success: true, message: 'Password reset successful' });
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                isVerified: user.isVerified,
+                bio: user.bio,
+                fitnessGoals: user.fitnessGoals,
+                dateOfBirth: user.dateOfBirth,
+                createdAt: user.createdAt,
+            },
+        })
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Error resetting password' });
+        // Handle Mongoose validation errors
+        if (error.name === "ValidationError") {
+            const messages = Object.values(error.errors).map((err) => err.message)
+            return res.status(400).json({
+                success: false,
+                message: "Validation error",
+                errors: messages,
+            })
+        }
+
+        res.status(500).json({
+            success: false,
+            message: "Server error updating profile",
+        })
     }
-});
+})
+
+// @route   PUT /api/auth/change-password
+// @desc    Change user password
+// @access  Private
+router.put("/change-password", protect, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password and new password are required",
+            })
+        }
+
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized access",
+            })
+        }
+
+        // Find user with password
+        const user = await User.findById(req.user.id).select("+password")
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            })
+        }
+
+        // Check current password
+        const isMatch = await user.comparePassword(currentPassword)
+
+        if (!isMatch) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password is incorrect",
+            })
+        }
+
+        // Update password
+        user.password = newPassword
+        await user.save()
+
+        res.status(200).json({
+            success: true,
+            message: "Password changed successfully",
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Server error changing password",
+        })
+    }
+})
+
+// @route   DELETE /api/auth/account
+// @desc    Delete user account
+// @access  Private
+router.delete("/account", protect, async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized access",
+            })
+        }
+
+        // Delete user account
+        await User.findByIdAndDelete(req.user.id)
+
+        res.status(200).json({
+            success: true,
+            message: "Account deleted successfully",
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Server error deleting account",
+        })
+    }
+})
+
+// // @route   POST /api/auth/make-admin
+// // @desc    Make current user admin (temporary route for setup)
+// // @access  Private
+// router.post("/make-admin", protect, async (req, res) => {
+//     try {
+//         if (!req.user) {
+//             return res.status(401).json({
+//                 success: false,
+//                 message: "Unauthorized access",
+//             })
+//         }
+
+//         // Update user role to admin
+//         const user = await User.findByIdAndUpdate(
+//             req.user.id,
+//             { role: 'admin' },
+//             { new: true }
+//         )
+
+//         if (!user) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: "User not found",
+//             })
+//         }
+
+//         res.status(200).json({
+//             success: true,
+//             message: "User role updated to admin successfully",
+//             user: {
+//                 id: user._id,
+//                 username: user.username,
+//                 email: user.email,
+//                 role: user.role,
+//                 isVerified: user.isVerified,
+//                 createdAt: user.createdAt,
+//             }
+//         })
+//     } catch (error) {
+//         res.status(500).json({
+//             success: false,
+//             message: "Server error updating role",
+//         })
+//     }
+// })
+
+// // @route   POST /api/auth/setup-admin
+// // @desc    Create admin user (one-time setup)
+// // @access  Public
+// router.post("/setup-admin", async (req, res) => {
+//     try {
+//         // Check if admin user already exists
+//         const existingAdmin = await User.findOne({ email: 'admin@fitflow.com' });
+        
+//         if (existingAdmin) {
+//             // Update the existing user to ensure they have admin role
+//             existingAdmin.role = 'admin';
+//             existingAdmin.isVerified = true;
+//             await existingAdmin.save();
+            
+//             return res.status(200).json({
+//                 success: true,
+//                 message: "Admin user already exists and role updated",
+//                 user: {
+//                     id: existingAdmin._id,
+//                     username: existingAdmin.username,
+//                     email: existingAdmin.email,
+//                     role: existingAdmin.role,
+//                     isVerified: existingAdmin.isVerified
+//                 }
+//             });
+//         }
+
+//         // Create new admin user
+//         const adminUser = new User({
+//             username: 'admin',
+//             email: 'admin@fitflow.com',
+//             password: 'Admin12345@',
+//             role: 'admin',
+//             isVerified: true
+//         });
+
+//         await adminUser.save();
+
+//         res.status(201).json({
+//             success: true,
+//             message: "Admin user created successfully",
+//             user: {
+//                 id: adminUser._id,
+//                 username: adminUser.username,
+//                 email: adminUser.email,
+//                 role: adminUser.role,
+//                 isVerified: adminUser.isVerified
+//             }
+//         });
+
+//     } catch (error) {
+//         console.error('Error setting up admin:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: "Server error creating admin user",
+//         });
+//     }
+// })
 
 module.exports = router;

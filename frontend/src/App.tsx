@@ -12,6 +12,7 @@ import Profile from "./views/User/Profile";
 import Dashboard from "./views/User/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRoutes from "./components/AuthRoutes";
+import AdminRoute from "./components/AdminRoute";
 import RecipeDatabase from "./views/Public/RecipeDatabase";
 
 // Import new feature pages
@@ -19,6 +20,15 @@ import WorkoutTracker from "./views/User/Workouts/WorkoutTracker";
 import NutritionTracker from "./views/User/Nutrition/NutritionTracker";
 import ProgressTracker from "./views/User/Progress/ProgressTracker";
 import ForgetPassword from "./views/Auth/ForgetPassword";
+
+// Import admin pages
+import { AdminLayout } from "./views/Admin/components/AdminLayout";
+import AdminDashboard from "./views/Admin/Dashboard";
+import AdminUsers from "./views/Admin/Users";
+import AdminWorkouts from "./views/Admin/Workouts";
+import AdminNutrition from "./views/Admin/Nutrition";
+import AdminProgress from "./views/Admin/Progress";
+import AdminSetup from "./components/AdminSetup";
 
 function App() {
   return (
@@ -37,6 +47,17 @@ function App() {
               <Route path="/auth/forgot-password" element={<ForgetPassword />} />
             </Route>
 
+            {/* Admin Routes - Require admin role */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="workouts" element={<AdminWorkouts />} />
+                <Route path="nutrition" element={<AdminNutrition />} />
+                <Route path="progress" element={<AdminProgress />} />
+              </Route>
+            </Route>
+
             {/* Protected Routes - Require authentication */}
             <Route element={<ProtectedRoute />}>
               <Route path="/profile" element={<Profile />} />
@@ -46,8 +67,11 @@ function App() {
               <Route path="/progress" element={<ProgressTracker />} />
             </Route>
 
+
+
             {/* Public Routes */}
             <Route path="/recipes" element={<RecipeDatabase />} />
+            <Route path="/setup-admin" element={<AdminSetup />} />
           </Routes>
         </AuthProvider>
       </NotificationProvider>
