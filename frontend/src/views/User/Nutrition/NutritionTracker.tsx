@@ -246,7 +246,8 @@ const NutritionTracker: React.FC = () => {
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Food Items *</Label>
 
-                <div className="space-y-3 sm:hidden">
+                {/* Mobile Layout - Cards with single-line inputs */}
+                <div className="space-y-3 ">
                   {foodItems.map((foodItem, index) => (
                     <Card key={index} className="p-3 bg-muted/30">
                       <div className="space-y-3">
@@ -257,20 +258,24 @@ const NutritionTracker: React.FC = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => handleRemoveFoodItem(index)}
-                            className="h-8 w-8 p-0"
+                            className="h-8 w-8 p-0 flex-shrink-0"
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
+
+                        {/* Food name - full width */}
                         <Input
                           placeholder="Food name"
                           value={foodItem.name}
                           onChange={(e) => handleFoodItemChange(index, "name", e.target.value)}
-                          className="h-10 text-base"
+                          className="h-10 text-base w-full"
                         />
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <Label className="text-xs text-muted-foreground">Calories</Label>
+
+                        {/* Calories and Quantity in a flex row */}
+                        <div className="flex gap-2">
+                          <div className="flex-1 min-w-0">
+                            <Label className="text-xs text-muted-foreground block mb-1">Calories</Label>
                             <Input
                               type="number"
                               placeholder="0"
@@ -279,11 +284,11 @@ const NutritionTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleFoodItemChange(index, "calories", Number.parseInt(e.target.value) || 0)
                               }
-                              className="h-9 text-sm"
+                              className="h-9 text-sm w-full"
                             />
                           </div>
-                          <div>
-                            <Label className="text-xs text-muted-foreground">Quantity</Label>
+                          <div className="flex-1 min-w-0">
+                            <Label className="text-xs text-muted-foreground block mb-1">Quantity</Label>
                             <Input
                               type="number"
                               placeholder="1"
@@ -293,13 +298,15 @@ const NutritionTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleFoodItemChange(index, "quantity", Number.parseFloat(e.target.value) || 0)
                               }
-                              className="h-9 text-sm"
+                              className="h-9 text-sm w-full"
                             />
                           </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-2">
-                          <div>
-                            <Label className="text-xs text-muted-foreground">Protein (g)</Label>
+
+                        {/* Protein, Carbs, Fat in a flex row to ensure single line */}
+                        <div className="flex gap-2">
+                          <div className="flex-1 min-w-0">
+                            <Label className="text-xs text-muted-foreground block mb-1">Protein (g)</Label>
                             <Input
                               type="number"
                               placeholder="0"
@@ -308,11 +315,11 @@ const NutritionTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleFoodItemChange(index, "protein", Number.parseInt(e.target.value) || 0)
                               }
-                              className="h-9 text-sm"
+                              className="h-9 text-sm w-full"
                             />
                           </div>
-                          <div>
-                            <Label className="text-xs text-muted-foreground">Carbs (g)</Label>
+                          <div className="flex-1 min-w-0">
+                            <Label className="text-xs text-muted-foreground block mb-1">Carbs (g)</Label>
                             <Input
                               type="number"
                               placeholder="0"
@@ -321,18 +328,18 @@ const NutritionTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleFoodItemChange(index, "carbs", Number.parseInt(e.target.value) || 0)
                               }
-                              className="h-9 text-sm"
+                              className="h-9 text-sm w-full"
                             />
                           </div>
-                          <div>
-                            <Label className="text-xs text-muted-foreground">Fat (g)</Label>
+                          <div className="flex-1 min-w-0">
+                            <Label className="text-xs text-muted-foreground block mb-1">Fat (g)</Label>
                             <Input
                               type="number"
                               placeholder="0"
                               min="0"
                               value={foodItem.fat || ""}
                               onChange={(e) => handleFoodItemChange(index, "fat", Number.parseInt(e.target.value) || 0)}
-                              className="h-9 text-sm"
+                              className="h-9 text-sm w-full"
                             />
                           </div>
                         </div>
@@ -341,7 +348,8 @@ const NutritionTracker: React.FC = () => {
                   ))}
                 </div>
 
-                <div className="hidden sm:block border rounded-md overflow-hidden">
+                {/* Desktop Layout - Table */}
+                {/* <div className="hidden sm:block border rounded-md overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent bg-muted/50">
@@ -362,7 +370,7 @@ const NutritionTracker: React.FC = () => {
                               placeholder="Food name"
                               value={foodItem.name}
                               onChange={(e) => handleFoodItemChange(index, "name", e.target.value)}
-                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input"
+                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input w-full"
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -374,7 +382,7 @@ const NutritionTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleFoodItemChange(index, "calories", Number.parseInt(e.target.value) || 0)
                               }
-                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input"
+                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input w-full"
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -386,7 +394,7 @@ const NutritionTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleFoodItemChange(index, "protein", Number.parseInt(e.target.value) || 0)
                               }
-                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input"
+                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input w-full"
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -398,7 +406,7 @@ const NutritionTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleFoodItemChange(index, "carbs", Number.parseInt(e.target.value) || 0)
                               }
-                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input"
+                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input w-full"
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -408,7 +416,7 @@ const NutritionTracker: React.FC = () => {
                               min="0"
                               value={foodItem.fat || ""}
                               onChange={(e) => handleFoodItemChange(index, "fat", Number.parseInt(e.target.value) || 0)}
-                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input"
+                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input w-full"
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -421,7 +429,7 @@ const NutritionTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleFoodItemChange(index, "quantity", Number.parseFloat(e.target.value) || 0)
                               }
-                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input"
+                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input w-full"
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -430,7 +438,7 @@ const NutritionTracker: React.FC = () => {
                               variant="outline"
                               size="icon"
                               onClick={() => handleRemoveFoodItem(index)}
-                              className="h-8 w-8"
+                              className="h-8 w-8 flex-shrink-0"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -439,7 +447,7 @@ const NutritionTracker: React.FC = () => {
                       ))}
                     </TableBody>
                   </Table>
-                </div>
+                </div> */}
 
                 <Button
                   type="button"

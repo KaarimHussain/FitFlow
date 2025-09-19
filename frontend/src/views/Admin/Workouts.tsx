@@ -125,7 +125,6 @@ export default function AdminWorkouts() {
               <TableHead>Category</TableHead>
               <TableHead>Exercises</TableHead>
               <TableHead>Tags</TableHead>
-              <TableHead>Date</TableHead>
               <TableHead>Created</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
@@ -169,10 +168,7 @@ export default function AdminWorkouts() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {workout.date ? format(new Date(workout.date), 'MMM dd, yyyy') : 'N/A'}
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(workout.createdAt), 'MMM dd, yyyy')}
+                    {workout.date ? format(new Date(workout.date), 'MMM dd, yyyy') : "N/A"}
                   </TableCell>
                   <TableCell>
                     <Dialog>
@@ -220,12 +216,12 @@ export default function AdminWorkouts() {
                               {workout.date && (
                                 <div>
                                   <span className="font-medium">Date:</span>
-                                  <span className="ml-2">{format(new Date(workout.date), 'PPP')}</span>
+                                  <span className="ml-2">{workout.date ? format(new Date(workout.date), 'MMM dd, yyyy') : "N/A"}</span>
                                 </div>
                               )}
                               <div>
                                 <span className="font-medium">Created:</span>
-                                <span className="ml-2">{format(new Date(workout.createdAt), 'PPP')}</span>
+                                <span className="ml-2">{workout.date ? format(new Date(workout.date), 'MMM dd, yyyy') : "N/A"}</span>
                               </div>
                               {workout.tags && workout.tags.length > 0 && (
                                 <div>

@@ -264,7 +264,7 @@ const WorkoutTracker: React.FC = () => {
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Exercises *</Label>
-                <div className="space-y-3 sm:hidden">
+                <div className="space-y-3">
                   {exercises.map((exercise, index) => (
                     <Card key={index} className="p-3 bg-muted/30">
                       <div className="space-y-3">
@@ -275,20 +275,24 @@ const WorkoutTracker: React.FC = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => handleRemoveExercise(index)}
-                            className="h-8 w-8 p-0"
+                            className="h-8 w-8 p-0 flex-shrink-0"
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
+
+                        {/* Exercise name - full width */}
                         <Input
                           placeholder="Exercise name"
                           value={exercise.name}
                           onChange={(e) => handleExerciseChange(index, "name", e.target.value)}
-                          className="h-10 text-base"
+                          className="h-10 text-base w-full"
                         />
-                        <div className="grid grid-cols-3 gap-2">
-                          <div>
-                            <Label className="text-xs text-muted-foreground">Sets</Label>
+
+                        {/* Sets, Reps, Weight in a flex row to ensure single line */}
+                        <div className="flex gap-2">
+                          <div className="flex-1 min-w-0">
+                            <Label className="text-xs text-muted-foreground block mb-1">Sets</Label>
                             <Input
                               type="number"
                               placeholder="0"
@@ -297,11 +301,11 @@ const WorkoutTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleExerciseChange(index, "sets", Number.parseInt(e.target.value) || 0)
                               }
-                              className="h-9 text-sm"
+                              className="h-9 text-sm w-full"
                             />
                           </div>
-                          <div>
-                            <Label className="text-xs text-muted-foreground">Reps</Label>
+                          <div className="flex-1 min-w-0">
+                            <Label className="text-xs text-muted-foreground block mb-1">Reps</Label>
                             <Input
                               type="number"
                               placeholder="0"
@@ -310,11 +314,11 @@ const WorkoutTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleExerciseChange(index, "reps", Number.parseInt(e.target.value) || 0)
                               }
-                              className="h-9 text-sm"
+                              className="h-9 text-sm w-full"
                             />
                           </div>
-                          <div>
-                            <Label className="text-xs text-muted-foreground">Weight</Label>
+                          <div className="flex-1 min-w-0">
+                            <Label className="text-xs text-muted-foreground block mb-1">Weight</Label>
                             <Input
                               type="number"
                               placeholder="0"
@@ -324,7 +328,7 @@ const WorkoutTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleExerciseChange(index, "weight", Number.parseFloat(e.target.value) || 0)
                               }
-                              className="h-9 text-sm"
+                              className="h-9 text-sm w-full"
                             />
                           </div>
                         </div>
@@ -333,7 +337,8 @@ const WorkoutTracker: React.FC = () => {
                   ))}
                 </div>
 
-                <div className="hidden sm:block border rounded-md overflow-hidden">
+                {/* Desktop Layout - Table */}
+                {/* <div className="hidden sm:block border rounded-md overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent bg-muted/50">
@@ -352,7 +357,7 @@ const WorkoutTracker: React.FC = () => {
                               placeholder="Exercise name"
                               value={exercise.name}
                               onChange={(e) => handleExerciseChange(index, "name", e.target.value)}
-                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input"
+                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input w-full"
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -364,7 +369,7 @@ const WorkoutTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleExerciseChange(index, "sets", Number.parseInt(e.target.value) || 0)
                               }
-                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input"
+                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input w-full"
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -376,7 +381,7 @@ const WorkoutTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleExerciseChange(index, "reps", Number.parseInt(e.target.value) || 0)
                               }
-                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input"
+                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input w-full"
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -389,7 +394,7 @@ const WorkoutTracker: React.FC = () => {
                               onChange={(e) =>
                                 handleExerciseChange(index, "weight", Number.parseFloat(e.target.value) || 0)
                               }
-                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input"
+                              className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border-input w-full"
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -398,7 +403,7 @@ const WorkoutTracker: React.FC = () => {
                               variant="outline"
                               size="icon"
                               onClick={() => handleRemoveExercise(index)}
-                              className="h-8 w-8"
+                              className="h-8 w-8 flex-shrink-0"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -407,7 +412,7 @@ const WorkoutTracker: React.FC = () => {
                       ))}
                     </TableBody>
                   </Table>
-                </div>
+                </div> */}
 
                 <Button
                   type="button"

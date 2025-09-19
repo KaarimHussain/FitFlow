@@ -71,7 +71,7 @@ const Hero = memo(() => {
 
                         {/* CTA Buttons */}
                         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-                            <Link to="/auth/sign-up">
+                            <Link to="/login">
                                 <Button size="lg" className="px-8 py-6 text-lg font-semibold min-w-[200px]">
                                     <Play className="w-5 h-5 mr-2" />
                                     Get Started Today
